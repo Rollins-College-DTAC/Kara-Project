@@ -9,6 +9,32 @@ data_dir = "data"          # holds raw.json (TinyDB) and analytics.sqlite
 scan_seconds = 15          # the loop polls the inbox this often
 settle_seconds = 1.0       # ignore files modified in the last second (still being written)
 
+[models]
+# Model names live here, never in code: they change.
+enabled = true                       # kill switch: false (or MODEL_CALLS_ENABLED=false) = rules only, no model calls
+haiku = "claude-haiku-4-5"           # extraction, and classification when Jev is unavailable
+sonnet = "claude-sonnet-5-5"         # escalation and plain-English explanations
+jev_base_url = ""                    # from TypeSafe's developer docs; empty = Jev not configured, Haiku answers instead
+category_confidence_threshold = 0.6  # below this, a record goes to the review queue
+injection_threshold = 0.5            # injection probability at or above this quarantines the record
+max_output_tokens = 500
+max_tokens_per_run = 20000           # env MAX_TOKENS_PER_RUN overrides
+max_tokens_per_day = 500000          # env MAX_TOKENS_PER_DAY overrides
+questions_file = "prompts/jev_questions_v1.json"
+extract_prompt_file = "prompts/extract_v1.md"
+
+# Estimated USD per million tokens, for the cost column only. Confirm on Anthropic's pricing page.
+[models.prices]
+"claude-haiku-4-5" = { input = 1.0, output = 5.0 }
+"claude-sonnet-5-5" = { input = 3.0, output = 15.0 }
+
+[evaluation]
+# Pass bar, set BEFORE any model is scored on the gold set. Do not move it after looking.
+category_accuracy_min = 0.90
+invented_values_max = 0
+injection_recall_min = 1.0
+max_tokens = 150000        # token cap for one evaluation run of the gold set (the daily cap still applies)
+
 [generator]
 minutes = 10               # demo-length runs only; one import per interval
 interval_seconds = 60      # one import per minute
@@ -22,3 +48,4 @@ anomaly_rate = 0.10        # about 1 import in 10 is a seeded anomaly
 duplicate_row_rate = 0.15  # chance an import contains an exact duplicate row
 renamed_copy_rate = 0.08   # chance an earlier file is re-sent under a new name
 injection_rate = 0.03      # chance a record's notes try to give instructions (for the injection test)
+hard_note_rate = 0.35      # share of notes written the hard way (paraphrases, two topics, decoys, numbers in words)

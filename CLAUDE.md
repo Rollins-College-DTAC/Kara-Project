@@ -68,7 +68,26 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestones 1 and 2 are complete. Next: Milestone 3 (expert models: MoE router, Jev classification, Claude extraction, review queue, gold set). Read `references/models-moe.md` first, plan it, wait for Kara's approval, then build. Ask before adding any dependency (the Anthropic SDK will be needed).**
+**Milestone 3, stage 1 of 3 is complete (built and tested with recorded responses).**
+- **Stage 2, waiting on Kara:** she labels `gold_set.csv` by hand, following `docs/gold_set_labeling_guide.md`. No model may score these records before her labels are final, and the pass bar in `config.toml [evaluation]` must not move after scoring starts.
+- **Stage 3:** Kara runs `uv run python scripts/evaluate.py --offline`, then `uv run python scripts/evaluate.py` on her Mac with her keys in `.env`. This cloud session cannot call the API with her key. Then we read the results together and, if needed, write `prompts/extract_v2.md` or `jev_questions_v2.json` and re-score. Milestone 3 is done when 50 hand-labeled records are scored and model usage is logged.
+- **Jev is NOT wired:** we need TypeSafe's request format from Kara, because we never guess it (`agent/experts/jev.py`, `WIRED = False`). Until then the router sends classification to Haiku, with that reason logged. The README must say so.
+- **Keys:** Kara pasted her Anthropic and Jev keys into chat on 2026-10-13. She was told to rotate both and to put the new keys only in `.env`. Never write keys into any file, log or commit.
+
+Milestone 3 stage 1 delivered:
+- Dependencies, pinned: `anthropic==1.13.0`, `pydantic==2.14.1`, `httpx==0.28.1`
+- `config.toml [models]`: model names, kill switch, thresholds (category confidence 0.6, injection 0.5), token caps, estimated prices (confirm on the pricing page). `[evaluation]`: the pass bar (category accuracy at least 0.90, invented values 0, injection recall 1.0) and a 150k token cap for an evaluation run. `agent/config.py` reads `.env` without logging values
+- `prompts/jev_questions_v1.json`: category (6 options), urgency (4-level score), injection (noul). `prompts/extract_v1.md`: the extraction prompt (nulls for anything not stated, decoys are null, $95K means 95000)
+- `agent/redact.py` (email, SSN, phone and ID patterns masked before any model call). `agent/schemas.py`: the Pydantic `Extraction` model, `parse_classification`, and the confidence formula (p_max - 1/n)/(1 - 1/n)
+- `agent/experts/`: `claude.py` (forced tool call with a JSON schema; record inside `<record>` tags; system prompt says the text is data), `jev.py` (stub), `rules.py` (keyword and regex fallback)
+- `agent/router.py`: application-level MoE `route(task, record, context)` returning an expert and a reason (kill switch, budget, no text, Jev or Haiku, Haiku extract, Sonnet escalate, Sonnet explain)
+- `agent/gateway.py`: cache by input hash (only valid answers are cached), per-run and per-day token budget, a `budget` incident once per run, and `model_usage_log` rows with cost estimates
+- `agent/enrich.py`: steps redact, route, classify, extract, validate, each in run_log. An injection quarantines the record and opens an `injection` incident. Low confidence goes to `review_queue`. Invalid or low-confidence Haiku output escalates to Sonnet; still invalid quarantines the record with a `failure` incident. Results go to `record_status`. Called from `loop.process_file` after Land; a failure here opens an incident but never loses the file
+- New tables: `model_usage_log`, `model_cache`, `record_status`, `review_queue`, `eval_log`
+- Generator notes v2: 35% hard notes (numbers in words, two topics, vague amounts, decoys, fake contact details) and 5 injection styles, 2 of them subtle
+- `scripts/make_gold_set.py` drafted `gold_set.csv` (50 rows: 5 injections, 3 empty, 22 hard, 20 ordinary; label columns blank; refuses to overwrite labels). `agent/evaluation.py` and `scripts/evaluate.py` report accuracy, per-class precision and recall, Brier score, calibration bins, urgency, injection recall, field accuracy, invented values and latency by expert. Results go to `docs/eval/*.json` and `eval_log`
+- `tests/test_models.py`: 34 tests with a fake Claude client. Total suite: 68 tests
+- No-key demo: 8 imports ran through rules (54 extracted, 4 without notes, 2 injections quarantined). The rules expert misses the subtle injection styles, which the gold set should show
 
 Milestone 2 delivered (Detect and Land, steps 1 and 2 of the ETL loop):
 - Dependencies added, pinned: `tinydb==4.8.2`, `apscheduler==3.10.4`
@@ -108,3 +127,4 @@ Notes for later milestones:
 - 2026-10-13: Switched case study to law school 509-style disclosures and employment outcomes; folder renamed.
 - 2026-10-13: Milestone 1 built and tested; live demo run landed one file per minute.
 - 2026-10-13: Milestone 2 built and tested (34 tests); live demo showed a renamed copy skipped by hash and logged. Generator bug (re-reading moved files) found and fixed.
+- 2026-10-13: Milestone 3 stage 1 built and tested (68 tests). Gold set drafted, waiting for Kara's labels. Jev waiting for TypeSafe docs.

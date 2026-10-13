@@ -1,4 +1,4 @@
-"""The ETL loop (milestone 2 covers Detect and Land).
+"""The ETL loop: Detect and Land (milestone 2), then Redact, Route, Classify, Extract, Validate (milestone 3).
 
 Run continuously:   python -m agent.loop
 Scan once and exit: python -m agent.loop --once      (this is what GitHub Actions will use)
@@ -18,6 +18,7 @@ from pathlib import Path
 from agent.config import load_agent_config
 from agent.db import connect
 from agent.detect import detect
+from agent.enrich import enrich
 from agent.land import ParseError, land_records, move_unique, parse_file
 from agent.sql import RunContext, new_run_id, open_incident, run_sql, step
 
@@ -64,6 +65,16 @@ def process_file(cfg: dict, conn, path: Path) -> str:
                     ("landed", s.rows_out, ctx.file_sha256))
             s.message = f"landed {s.rows_out} records in raw.json; moved to {_where(cfg, dest)}"
         log.info("Landed %s (%d records)", path.name, s.rows_out)
+
+        # 3-6. Redact, route, classify, extract, validate (milestone 3). The file is already landed,
+        # so a failure here opens an incident but never moves or loses the file.
+        if cfg.get("models"):
+            try:
+                counts = enrich(cfg, ctx, records)
+                log.info("Enriched %s: %s", path.name, counts)
+            except Exception as exc:
+                open_incident(ctx, "failure", f"{path.name}: enrichment failed: {type(exc).__name__}: {exc}")
+                log.warning("Enrichment failed for %s: %s", path.name, exc)
         return "landed"
 
     except Exception as exc:  # the failed step is already in run_log

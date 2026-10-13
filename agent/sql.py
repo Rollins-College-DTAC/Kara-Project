@@ -103,7 +103,7 @@ def open_incident(ctx: RunContext, kind: str, detail: str) -> str:
     incident_id = f"inc-{uuid.uuid4().hex[:8]}"
     ctx.conn.execute(
         "INSERT INTO incident_log (incident_id, run_id, kind, detail, status, opened_at) VALUES (?, ?, ?, ?, 'open', ?)",
-        (incident_id, ctx.run_id, kind, _shorten(detail), now_iso()),
+        (incident_id, ctx.run_id, kind, detail[:400], now_iso()),
     )
     ctx.conn.commit()
     return incident_id

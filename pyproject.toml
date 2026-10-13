@@ -5,10 +5,14 @@ description = "Governed data agent: simulated law school disclosure and employme
 requires-python = ">=3.12"
 # Milestone 1 (generator) uses only the standard library.
 # Milestone 2 adds TinyDB (raw document layer) and APScheduler (polls the inbox).
-# Later milestones add more pinned packages (Pydantic, Streamlit, ...), each approved first.
+# Milestone 3 adds the Anthropic SDK, Pydantic (validation) and httpx (for the Jev client).
+# Later milestones add more pinned packages (Streamlit, ...), each approved first.
 dependencies = [
     "tinydb==4.8.2",
     "apscheduler==3.10.4",
+    "anthropic==1.13.0",
+    "pydantic==2.14.1",
+    "httpx==0.28.1",
 ]
 
 [dependency-groups]
