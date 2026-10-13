@@ -61,18 +61,33 @@ def run_evaluation(cfg: dict, gold_path: Path, experts: dict, offline: bool = Fa
             if not text:
                 preds.append(None)
                 continue
-            try:
-                res, parsed = gw.call("evaluate", "classify", name, qver, text,
-                                      lambda e, t=text: e.classify(t, questions),
-                                      lambda d: parse_classification(questions, d))
-                gw.log("evaluate", "classify", name, "evaluation: gold set", qver, result=res,
-                       confidence=parsed["category"]["confidence"], outcome="valid", pii=pii)
-                if not res.cached:
-                    latencies.setdefault(res.model, []).append(res.latency_ms)
-                preds.append(parsed)
-            except Exception as exc:
-                preds.append(None)
-                results["errors"].append(f"classify {name} {g['gold_id']}: {short(exc)}")
+            # Match agent/enrich.py's _classify: one retry on an invalid answer before giving up,
+            # so a flaky structured-output sample doesn't understate a non-rules expert's accuracy.
+            retried = False
+            while True:
+                try:
+                    res, parsed = gw.call("evaluate", "classify", name, qver, text,
+                                          lambda e, t=text: e.classify(t, questions),
+                                          lambda d: parse_classification(questions, d))
+                    gw.log("evaluate", "classify", name, "evaluation: gold set", qver, result=res,
+                           confidence=parsed["category"]["confidence"], outcome="valid", pii=pii)
+                    if not res.cached:
+                        latencies.setdefault(res.model, []).append(res.latency_ms)
+                    preds.append(parsed)
+                    break
+                except InvalidAnswer as exc:
+                    gw.log("evaluate", "classify", name, "evaluation: gold set; invalid", qver, result=exc.result,
+                           outcome="retried" if not retried else "failed", pii=pii)
+                    if not retried and name != "rules":
+                        retried = True
+                        continue
+                    preds.append(None)
+                    results["errors"].append(f"classify {name} {g['gold_id']}: {short(exc.error)}")
+                    break
+                except Exception as exc:
+                    preds.append(None)
+                    results["errors"].append(f"classify {name} {g['gold_id']}: {short(exc)}")
+                    break
         results["classify"][name] = classification_metrics(gold, preds, questions)
         results["classify"][name]["predictions"] = [
             {"gold_id": g["gold_id"], "category": p["category"]["choice"] if p else None,

@@ -295,7 +295,9 @@ def test_budget_cap_switches_to_rules_and_opens_one_incident(cfg):
     conn, _ = run(cfg, [{"notes": SALARY_NOTE}, {"notes": "Class of 2024 employment narrative: strongest placement in government roles."}], experts)
     assert len(hc.calls) == 1
     assert len(rows(conn, "SELECT * FROM incident_log WHERE kind = 'budget'")) == 1
-    assert rows(conn, "SELECT expert FROM model_usage_log ORDER BY called_at DESC")[0]["expert"] == "rules"
+    # order by rowid, not called_at: two calls can land in the same second, and called_at alone
+    # does not break the tie deterministically.
+    assert rows(conn, "SELECT expert FROM model_usage_log ORDER BY rowid DESC")[0]["expert"] == "rules"
 
 
 def test_no_api_key_uses_rules_without_failing(cfg):
@@ -415,6 +417,36 @@ def test_offline_evaluation_runs_end_to_end(cfg, tmp_path):
     assert (tmp_path / "eval").glob("*.json")
     conn = connect(cfg["sqlite_path"])
     assert rows(conn, "SELECT COUNT(*) AS n FROM eval_log")[0]["n"] >= 3
+
+
+def test_evaluate_retries_once_on_invalid_classify_answer_like_enrich(cfg, tmp_path):
+    """scripts/evaluate.py's classify loop should retry once on an invalid answer, matching
+    agent/enrich.py's _classify, so a single flaky sample doesn't count as a flat miss."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("evaluate", ROOT / "scripts" / "evaluate.py")
+    ev = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ev)
+    calls = {"n": 0}
+
+    def flaky_classify(text):
+        calls["n"] += 1
+        return {"category": "salary"} if calls["n"] == 1 else classify_answer("salary", 0.9)
+
+    experts, hc, _ = make_experts(cfg, haiku=handler(classify=flaky_classify))
+    gold = tmp_path / "gold.csv"
+    rows_ = [labeled()]
+    with open(gold, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows_[0]))
+        w.writeheader()
+        w.writerows(rows_)
+    r = ev.run_evaluation(cfg, gold, experts, offline=False, out_dir=tmp_path / "eval")
+    assert calls["n"] == 2
+    assert r["classify"]["haiku"]["n"] == 1 and r["classify"]["haiku"]["category_accuracy"] == 1.0
+    assert not r["errors"]
+    conn = connect(cfg["sqlite_path"])
+    outcomes = [u["outcome"] for u in rows(conn, "SELECT outcome FROM model_usage_log WHERE task = 'classify' "
+                                                 "AND expert = ? ORDER BY called_at", (cfg["models"]["haiku"],))]
+    assert outcomes == ["retried", "valid"]
 
 
 # ---------------------------------------------------------------- generator notes v2
