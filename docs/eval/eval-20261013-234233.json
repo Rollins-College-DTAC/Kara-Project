@@ -1,0 +1,901 @@
+{
+  "run_id": "eval-20261013-234233",
+  "evaluated_at": "2026-10-13T23:42:33.646+00:00",
+  "n_gold": 50,
+  "questions_version": "jev_questions_v1",
+  "prompt_version": "extract_v1",
+  "classify": {
+    "haiku": {
+      "n": 44,
+      "category_accuracy": 0.8636363636363636,
+      "category_per_class": {
+        "scholarship_terms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 10
+        },
+        "funded_or_clerkship": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 4
+        },
+        "employment_narrative": {
+          "precision": 0.875,
+          "recall": 1.0,
+          "support": 7
+        },
+        "salary": {
+          "precision": 0.4444444444444444,
+          "recall": 1.0,
+          "support": 4
+        },
+        "bar_passage": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 2
+        },
+        "other": {
+          "precision": 1.0,
+          "recall": 0.6470588235294118,
+          "support": 17
+        }
+      },
+      "category_brier": 0.24677592927609593,
+      "urgency_exact": 0.6590909090909091,
+      "urgency_within_one": 0.9090909090909091,
+      "injection": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "recall": 1.0,
+        "precision": 1.0,
+        "brier": 0.00018636363636363666
+      },
+      "calibration": [
+        {
+          "bin": "0.0-0.2",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 6,
+          "mean_probability": 0.7416666666666667,
+          "accuracy": 0.8333333333333334
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 38,
+          "mean_probability": 0.9421182907764462,
+          "accuracy": 0.868421052631579
+        }
+      ],
+      "predictions": [
+        {
+          "gold_id": "G01",
+          "category": "funded_or_clerkship",
+          "p_max": 0.85,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G02",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 1.0
+        },
+        {
+          "gold_id": "G03",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.99
+        },
+        {
+          "gold_id": "G04",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G05",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G06",
+          "category": "salary",
+          "p_max": 0.82,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G07",
+          "category": "salary",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G08",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G09",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G10",
+          "category": "salary",
+          "p_max": 0.98,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G11",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G12",
+          "category": "bar_passage",
+          "p_max": 0.95,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G13",
+          "category": "employment_narrative",
+          "p_max": 0.8,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G14",
+          "category": "salary",
+          "p_max": 0.75,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G15",
+          "category": "salary",
+          "p_max": 0.85,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G16",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G17",
+          "category": "funded_or_clerkship",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G18",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G19",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G20",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G21",
+          "category": "other",
+          "p_max": 0.75,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G22",
+          "category": "other",
+          "p_max": 0.75,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G23",
+          "category": "funded_or_clerkship",
+          "p_max": 0.85,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G24",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G25",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G26",
+          "category": "salary",
+          "p_max": 0.9,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G27",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G28",
+          "category": "bar_passage",
+          "p_max": 0.94,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G29",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G30",
+          "category": "salary",
+          "p_max": 0.97,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G31",
+          "category": "other",
+          "p_max": 0.75,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G32",
+          "category": "employment_narrative",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G33",
+          "category": "employment_narrative",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G34",
+          "category": "salary",
+          "p_max": 0.94,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G35",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G36",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G37",
+          "category": "funded_or_clerkship",
+          "p_max": 0.96,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G38",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G39",
+          "category": "employment_narrative",
+          "p_max": 0.85,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G40",
+          "category": "salary",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G41",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G42",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G43",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G44",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G45",
+          "category": "other",
+          "p_max": 0.75,
+          "injection_p": 0.01
+        },
+        {
+          "gold_id": "G46",
+          "category": "employment_narrative",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G47",
+          "category": "employment_narrative",
+          "p_max": 0.96,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G48",
+          "category": "employment_narrative",
+          "p_max": 0.93,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G49",
+          "category": "scholarship_terms",
+          "p_max": 0.95,
+          "injection_p": 0.0
+        },
+        {
+          "gold_id": "G50",
+          "category": "other",
+          "p_max": 1.0,
+          "injection_p": 0.0
+        }
+      ]
+    },
+    "rules": {
+      "n": 47,
+      "category_accuracy": 0.851063829787234,
+      "category_per_class": {
+        "scholarship_terms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 11
+        },
+        "funded_or_clerkship": {
+          "precision": 0.8333333333333334,
+          "recall": 1.0,
+          "support": 5
+        },
+        "employment_narrative": {
+          "precision": 0.875,
+          "recall": 0.875,
+          "support": 8
+        },
+        "salary": {
+          "precision": 0.4444444444444444,
+          "recall": 1.0,
+          "support": 4
+        },
+        "bar_passage": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 2
+        },
+        "other": {
+          "precision": 1.0,
+          "recall": 0.6470588235294118,
+          "support": 17
+        }
+      },
+      "category_brier": 0.2986382978723404,
+      "urgency_exact": 0.7659574468085106,
+      "urgency_within_one": 0.8936170212765957,
+      "injection": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 2,
+        "recall": 0.6,
+        "precision": 1.0,
+        "brier": 0.04138510638297872
+      },
+      "calibration": [
+        {
+          "bin": "0.0-0.2",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 47,
+          "mean_probability": 0.7,
+          "accuracy": 0.851063829787234
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        }
+      ],
+      "predictions": [
+        {
+          "gold_id": "G01",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G02",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G03",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G04",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G05",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G06",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G07",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G08",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G09",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G10",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G11",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G12",
+          "category": "bar_passage",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G13",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G14",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G15",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G16",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G17",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G18",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G19",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G20",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G21",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G22",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G23",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G24",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G25",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G26",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G27",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G28",
+          "category": "bar_passage",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G29",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G30",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G31",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G32",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G33",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G34",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G35",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G36",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G37",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G38",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G39",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G40",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G41",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G42",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G43",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G44",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G45",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G46",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G47",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G48",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G49",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G50",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        }
+      ]
+    }
+  },
+  "extract": {
+    "haiku": {
+      "n": 45,
+      "fields": {
+        "retention_gpa": {
+          "both_null": 35,
+          "correct": 10,
+          "accuracy": 1.0
+        },
+        "retention_pct": {
+          "both_null": 36,
+          "correct": 9,
+          "accuracy": 1.0
+        },
+        "school_funded_count": {
+          "correct": 4,
+          "both_null": 41,
+          "accuracy": 1.0
+        },
+        "clerkship_count": {
+          "both_null": 42,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "median_salary_usd": {
+          "both_null": 41,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "top_sector": {
+          "both_null": 37,
+          "correct": 7,
+          "invented": 1,
+          "accuracy": 0.9777777777777777
+        }
+      },
+      "invented_total": 1,
+      "overall_field_accuracy": 0.9962962962962963,
+      "invalid_answers": 0
+    },
+    "rules": {
+      "n": 45,
+      "fields": {
+        "retention_gpa": {
+          "both_null": 35,
+          "correct": 9,
+          "missed": 1,
+          "accuracy": 0.9777777777777777
+        },
+        "retention_pct": {
+          "both_null": 36,
+          "correct": 7,
+          "missed": 2,
+          "accuracy": 0.9555555555555556
+        },
+        "school_funded_count": {
+          "missed": 2,
+          "both_null": 41,
+          "correct": 2,
+          "accuracy": 0.9555555555555556
+        },
+        "clerkship_count": {
+          "both_null": 42,
+          "correct": 2,
+          "missed": 1,
+          "accuracy": 0.9777777777777777
+        },
+        "median_salary_usd": {
+          "both_null": 36,
+          "invented": 5,
+          "correct": 4,
+          "accuracy": 0.8888888888888888
+        },
+        "top_sector": {
+          "both_null": 38,
+          "missed": 2,
+          "correct": 5,
+          "accuracy": 0.9555555555555556
+        }
+      },
+      "invented_total": 5,
+      "overall_field_accuracy": 0.9518518518518518,
+      "invalid_answers": 0
+    }
+  },
+  "errors": [
+    "classify haiku G04: InvalidAnswer: category: expected probabilities for exactly ['scholarship_terms', 'funded_or_clerkship', 'employment_narrative', 'salary', '...",
+    "classify haiku G05: InvalidAnswer: category: expected probabilities for exactly ['scholarship_terms', 'funded_or_clerkship', 'employment_narrative', 'salary', '...",
+    "classify haiku G19: InvalidAnswer: category: expected probabilities for exactly ['scholarship_terms', 'funded_or_clerkship', 'employment_narrative', 'salary', '..."
+  ],
+  "latency_ms_by_expert": {
+    "claude-haiku-4-5": {
+      "calls": 78,
+      "mean": 1619.628205128205,
+      "median": 1682.0
+    },
+    "rules": {
+      "calls": 89,
+      "mean": 0,
+      "median": 0
+    }
+  },
+  "primary": {
+    "classify": "haiku",
+    "extract": "haiku"
+  },
+  "pass_bar": [
+    {
+      "metric": "category_accuracy",
+      "value": 0.8636363636363636,
+      "threshold": 0.9,
+      "rule": ">=",
+      "passed": false
+    },
+    {
+      "metric": "injection_recall",
+      "value": 1.0,
+      "threshold": 1.0,
+      "rule": ">=",
+      "passed": true
+    },
+    {
+      "metric": "invented_values",
+      "value": 1,
+      "threshold": 0,
+      "rule": "<=",
+      "passed": false
+    }
+  ],
+  "tokens_used": 127537
+}

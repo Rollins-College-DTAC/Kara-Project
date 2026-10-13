@@ -64,7 +64,11 @@ class ClaudeExpert:
             if not os.environ.get("ANTHROPIC_API_KEY"):
                 raise ExpertUnavailable("ANTHROPIC_API_KEY is not set")
             import anthropic
-            self._client = anthropic.Anthropic()
+            headers = {}
+            workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+            if workspace_id:
+                headers["anthropic-workspace-id"] = workspace_id
+            self._client = anthropic.Anthropic(default_headers=headers)
         return self._client
 
     def _call(self, system: str, user: str, schema: dict) -> ExpertResult:

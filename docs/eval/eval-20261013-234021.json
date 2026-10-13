@@ -1,0 +1,905 @@
+{
+  "run_id": "eval-20261013-234021",
+  "evaluated_at": "2026-10-13T23:40:21.576+00:00",
+  "n_gold": 50,
+  "questions_version": "jev_questions_v1",
+  "prompt_version": "extract_v1",
+  "classify": {
+    "haiku": {
+      "n": 0,
+      "predictions": [
+        {
+          "gold_id": "G01",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G02",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G03",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G04",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G05",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G06",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G07",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G08",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G09",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G10",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G11",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G12",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G13",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G14",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G15",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G16",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G17",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G18",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G19",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G20",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G21",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G22",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G23",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G24",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G25",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G26",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G27",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G28",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G29",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G30",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G31",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G32",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G33",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G34",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G35",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G36",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G37",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G38",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G39",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G40",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G41",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G42",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G43",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G44",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G45",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G46",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G47",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G48",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G49",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G50",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        }
+      ]
+    },
+    "rules": {
+      "n": 47,
+      "category_accuracy": 0.851063829787234,
+      "category_per_class": {
+        "scholarship_terms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 11
+        },
+        "funded_or_clerkship": {
+          "precision": 0.8333333333333334,
+          "recall": 1.0,
+          "support": 5
+        },
+        "employment_narrative": {
+          "precision": 0.875,
+          "recall": 0.875,
+          "support": 8
+        },
+        "salary": {
+          "precision": 0.4444444444444444,
+          "recall": 1.0,
+          "support": 4
+        },
+        "bar_passage": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 2
+        },
+        "other": {
+          "precision": 1.0,
+          "recall": 0.6470588235294118,
+          "support": 17
+        }
+      },
+      "category_brier": 0.2986382978723404,
+      "urgency_exact": 0.7659574468085106,
+      "urgency_within_one": 0.8936170212765957,
+      "injection": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 2,
+        "recall": 0.6,
+        "precision": 1.0,
+        "brier": 0.04138510638297872
+      },
+      "calibration": [
+        {
+          "bin": "0.0-0.2",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.2-0.4",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.4-0.6",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        },
+        {
+          "bin": "0.6-0.8",
+          "n": 47,
+          "mean_probability": 0.7,
+          "accuracy": 0.851063829787234
+        },
+        {
+          "bin": "0.8-1.0",
+          "n": 0,
+          "mean_probability": null,
+          "accuracy": null
+        }
+      ],
+      "predictions": [
+        {
+          "gold_id": "G01",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G02",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G03",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G04",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G05",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G06",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G07",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G08",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G09",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G10",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G11",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G12",
+          "category": "bar_passage",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G13",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G14",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G15",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G16",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G17",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G18",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G19",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G20",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G21",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.95
+        },
+        {
+          "gold_id": "G22",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G23",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G24",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G25",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G26",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G27",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G28",
+          "category": "bar_passage",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G29",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G30",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G31",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G32",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G33",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G34",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G35",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G36",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G37",
+          "category": "funded_or_clerkship",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G38",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G39",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G40",
+          "category": "salary",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G41",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G42",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G43",
+          "category": null,
+          "p_max": null,
+          "injection_p": null
+        },
+        {
+          "gold_id": "G44",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G45",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G46",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G47",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G48",
+          "category": "employment_narrative",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G49",
+          "category": "scholarship_terms",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        },
+        {
+          "gold_id": "G50",
+          "category": "other",
+          "p_max": 0.7,
+          "injection_p": 0.02
+        }
+      ]
+    }
+  },
+  "extract": {
+    "haiku": {
+      "n": 45,
+      "fields": {
+        "retention_gpa": {
+          "both_null": 35,
+          "missed": 10,
+          "accuracy": 0.7777777777777778
+        },
+        "retention_pct": {
+          "both_null": 36,
+          "missed": 9,
+          "accuracy": 0.8
+        },
+        "school_funded_count": {
+          "missed": 4,
+          "both_null": 41,
+          "accuracy": 0.9111111111111111
+        },
+        "clerkship_count": {
+          "both_null": 42,
+          "missed": 3,
+          "accuracy": 0.9333333333333333
+        },
+        "median_salary_usd": {
+          "both_null": 41,
+          "missed": 4,
+          "accuracy": 0.9111111111111111
+        },
+        "top_sector": {
+          "both_null": 38,
+          "missed": 7,
+          "accuracy": 0.8444444444444444
+        }
+      },
+      "invented_total": 0,
+      "overall_field_accuracy": 0.8629629629629629,
+      "invalid_answers": 0
+    },
+    "rules": {
+      "n": 45,
+      "fields": {
+        "retention_gpa": {
+          "both_null": 35,
+          "correct": 9,
+          "missed": 1,
+          "accuracy": 0.9777777777777777
+        },
+        "retention_pct": {
+          "both_null": 36,
+          "correct": 7,
+          "missed": 2,
+          "accuracy": 0.9555555555555556
+        },
+        "school_funded_count": {
+          "missed": 2,
+          "both_null": 41,
+          "correct": 2,
+          "accuracy": 0.9555555555555556
+        },
+        "clerkship_count": {
+          "both_null": 42,
+          "correct": 2,
+          "missed": 1,
+          "accuracy": 0.9777777777777777
+        },
+        "median_salary_usd": {
+          "both_null": 36,
+          "invented": 5,
+          "correct": 4,
+          "accuracy": 0.8888888888888888
+        },
+        "top_sector": {
+          "both_null": 38,
+          "missed": 2,
+          "correct": 5,
+          "accuracy": 0.9555555555555556
+        }
+      },
+      "invented_total": 5,
+      "overall_field_accuracy": 0.9518518518518518,
+      "invalid_answers": 0
+    }
+  },
+  "errors": [
+    "classify haiku G01: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G02: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G03: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G04: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G05: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G06: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G07: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G08: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G09: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G10: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G12: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G13: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G14: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G15: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G16: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G17: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G18: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G19: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G20: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G21: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G22: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G23: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G24: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G25: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G26: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G27: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G28: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G29: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G30: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G31: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G32: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G33: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G34: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G36: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G37: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G38: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G39: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G40: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G41: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G42: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G44: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G45: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G46: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G47: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G48: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G49: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "classify haiku G50: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G01: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G04: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G05: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G06: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G07: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G08: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G09: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G10: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G12: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G13: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G14: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G15: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G16: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G17: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G18: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G19: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G20: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G22: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G23: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G24: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G25: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G26: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G27: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G28: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G29: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G30: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G32: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G33: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G34: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G36: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G37: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G38: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G40: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G41: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G42: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G44: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G45: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G46: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G47: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G48: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G49: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ...",
+    "extract haiku G50: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'This API key is not scoped to a ..."
+  ],
+  "latency_ms_by_expert": {
+    "rules": {
+      "calls": 89,
+      "mean": 0,
+      "median": 0
+    }
+  },
+  "primary": {
+    "classify": "haiku",
+    "extract": "haiku"
+  },
+  "pass_bar": [
+    {
+      "metric": "category_accuracy",
+      "value": null,
+      "threshold": 0.9,
+      "rule": ">=",
+      "passed": false
+    },
+    {
+      "metric": "injection_recall",
+      "value": null,
+      "threshold": 1.0,
+      "rule": ">=",
+      "passed": false
+    },
+    {
+      "metric": "invented_values",
+      "value": 0,
+      "threshold": 0,
+      "rule": "<=",
+      "passed": true
+    }
+  ],
+  "tokens_used": 0
+}
