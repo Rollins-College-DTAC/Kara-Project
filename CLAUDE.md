@@ -68,7 +68,23 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 1 is complete. Next: Milestone 2 (ETL loop: detect, hash, land in TinyDB, run log, SQL logging). Plan it, wait for Kara's approval, then build.**
+**Milestones 1 and 2 are complete. Next: Milestone 3 (expert models: MoE router, Jev classification, Claude extraction, review queue, gold set). Read `references/models-moe.md` first, plan it, wait for Kara's approval, then build. Ask before adding any dependency (the Anthropic SDK will be needed).**
+
+Milestone 2 delivered (Detect and Land, steps 1 and 2 of the ETL loop):
+- Dependencies added, pinned: `tinydb==4.8.2`, `apscheduler==3.10.4`
+- `agent/db.py`: SQLite in WAL mode; tables `run_log`, `sql_log`, `incident_log`, `file_registry` (one row per distinct file hash). `model_usage_log`, `stats_log`, `decision_log` are created by the milestones that use them
+- `agent/sql.py`: `run_sql(ctx, step, sql, params)` (placeholders only, long text shortened to 80 chars, logs file name; the log tables' own writes are not logged), `step(ctx, name)` context manager (writes a run_log row at start and finish), `open_incident(...)`
+- `agent/detect.py`: SHA-256 and skip-if-seen against `file_registry`. `agent/land.py`: parse CSV/JSON, store each record untouched in TinyDB `data/raw.json` table `raw_records` (fields: run_id, file_name, file_sha256, row_index, landed_at, `record`), move files. `agent/loop.py`: `process_file`, `scan_once`, APScheduler loop every 15 s; `python -m agent.loop --once` scans once and exits (for GitHub Actions)
+- Where files go: landed files to `processed/`; skipped duplicate hashes to `processed/duplicates/` (Kara's choice); unreadable files to `quarantine/` with an open `incident_log` row (kind `failure`)
+- Files modified in the last `settle_seconds` (1 s) are ignored so half-written files are not read
+- `scripts/show_log.py`: prints recent run_log, sql_log and incident_log rows
+- `tests/test_etl.py`: 20 tests (skip-if-seen, renamed copies, unchanged landing, step start/finish, placeholders, quote-safe SQL, quarantine cases, settle window). Total suite: 34 tests
+- Demo result: with generator and agent running together, `-resend` files were detected, matched by hash, skipped and shown in `run_log` (status `warning`) with their SQL in `sql_log`
+- Bug found by the live demo and fixed: the agent moves files out of `inbox/`, so the generator now keeps sent content in memory to make renamed copies (regression test added)
+
+Deliberately NOT done yet (later milestones): redaction (before any model call, milestone 3), routing and classification, extraction, Pydantic validation, cleaning into SQLite silver tables (exact duplicate rows inside a file are still in the raw layer), statistics, trigger.
+
+Run locally: `uv sync`; terminal 1 `uv run python -m generator.generate --minutes 10`; terminal 2 `uv run python -m agent.loop`; then `uv run python scripts/show_log.py`.
 
 Milestone 1 delivered:
 - `pyproject.toml` (Python 3.12+, no runtime dependencies yet, pytest pinned for dev), `config.toml` (all generator settings; `GENERATOR_MINUTES` env var overrides)
@@ -91,3 +107,4 @@ Notes for later milestones:
 - 2026-10-13: Project defined as a contract-template matcher; foundation files created.
 - 2026-10-13: Switched case study to law school 509-style disclosures and employment outcomes; folder renamed.
 - 2026-10-13: Milestone 1 built and tested; live demo run landed one file per minute.
+- 2026-10-13: Milestone 2 built and tested (34 tests); live demo showed a renamed copy skipped by hash and logged. Generator bug (re-reading moved files) found and fixed.

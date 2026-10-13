@@ -3,9 +3,13 @@ name = "law-school-outcomes-agent"
 version = "0.1.0"
 description = "Governed data agent: simulated law school disclosure and employment data (portfolio project)"
 requires-python = ">=3.12"
-# Milestone 1 uses only the Python standard library.
-# Later milestones add pinned packages here (TinyDB, Pydantic, Streamlit, ...), each approved first.
-dependencies = []
+# Milestone 1 (generator) uses only the standard library.
+# Milestone 2 adds TinyDB (raw document layer) and APScheduler (polls the inbox).
+# Later milestones add more pinned packages (Pydantic, Streamlit, ...), each approved first.
+dependencies = [
+    "tinydb==4.8.2",
+    "apscheduler==3.10.4",
+]
 
 [dependency-groups]
 dev = ["pytest==8.3.4"]

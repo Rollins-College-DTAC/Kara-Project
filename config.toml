@@ -1,6 +1,14 @@
 # Settings shared by the laptop, Docker and GitHub Actions.
 # Environment variables override these (for example GENERATOR_MINUTES).
 
+[agent]
+inbox = "inbox"
+processed = "processed"
+quarantine = "quarantine"
+data_dir = "data"          # holds raw.json (TinyDB) and analytics.sqlite
+scan_seconds = 15          # the loop polls the inbox this often
+settle_seconds = 1.0       # ignore files modified in the last second (still being written)
+
 [generator]
 minutes = 10               # demo-length runs only; one import per interval
 interval_seconds = 60      # one import per minute

@@ -309,6 +309,9 @@ def run(cfg: dict, minutes: int | None = None, interval_seconds: float | None = 
     schools = load_schools()
     profiles = {s["name"]: school_profile(s, cfg["seed"]) for s in schools}
     written: list[Path] = []
+    # What each import contained, kept in memory: once the agent is running it moves files
+    # out of inbox/, so a renamed copy cannot be made by re-reading the original from disk.
+    sent: list[tuple[Path, bytes]] = []
 
     for index in range(minutes):
         now = now_fn()
@@ -317,15 +320,16 @@ def run(cfg: dict, minutes: int | None = None, interval_seconds: float | None = 
         path = unique_path(inbox, f"law_school_outcomes_{now:%Y%m%d-%H%M}", fmt)
         write_records(path, records, fmt)
         written.append(path)
+        sent.append((path, path.read_bytes()))
         append_log(log_path, {"file_name": path.name, "created_at": now.isoformat(timespec="seconds"),
                               "index": index, "event": "import", "format": fmt, **meta})
         log.info("Landed %s (%d records, anomaly=%s)", path.name, meta["n_records"], meta["anomaly"])
 
         # Sometimes an earlier file is re-sent under a new name (same content, different file name).
-        if len(written) > 1 and r.random() < cfg["renamed_copy_rate"]:
-            original = r.choice(written[:-1])
+        if len(sent) > 1 and r.random() < cfg["renamed_copy_rate"]:
+            original, content = r.choice(sent[:-1])
             copy_path = unique_path(inbox, f"law_school_outcomes_{now:%Y%m%d-%H%M}-resend", original.suffix.lstrip("."))
-            copy_path.write_bytes(original.read_bytes())
+            copy_path.write_bytes(content)
             written.append(copy_path)
             append_log(log_path, {"file_name": copy_path.name, "created_at": now.isoformat(timespec="seconds"),
                                   "index": index, "event": "renamed_copy", "format": original.suffix.lstrip("."),

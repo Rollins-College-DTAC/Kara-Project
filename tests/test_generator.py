@@ -166,6 +166,21 @@ def test_renamed_copy_has_same_bytes_but_new_name(cfg, tmp_path):
         assert copy.read_bytes() == original.read_bytes()
 
 
+def test_renamed_copies_still_work_when_the_agent_empties_the_inbox(cfg, tmp_path):
+    """Regression: the agent moves files out of inbox/ between imports; the generator must not re-read them."""
+    inbox = tmp_path / "inbox"
+
+    def agent_empties_inbox(_seconds):
+        for f in inbox.glob("*"):
+            f.unlink()
+
+    c = {**cfg, "renamed_copy_rate": 1.0}
+    g.run(c, minutes=6, interval_seconds=0, inbox=inbox, log_path=tmp_path / "generator_log.csv",
+          sleep=agent_empties_inbox)
+    rows = list(csv.DictReader(open(tmp_path / "generator_log.csv", encoding="utf-8")))
+    assert len([r for r in rows if r["event"] == "renamed_copy"]) == 5
+
+
 def test_injection_records_are_flagged_in_the_log(cfg, tmp_path):
     files, rows = run_fast(cfg, tmp_path, minutes=6, injection_rate=1.0, renamed_copy_rate=0, duplicate_row_rate=0)
     assert all(int(r["injection_records"]) == int(r["n_records"]) for r in rows)
