@@ -68,7 +68,41 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 3 is complete.** Next: Milestone 4 (clean into SQLite, statistics, forecast, trigger and action), or iterate the classify/extract prompts first to close the pass-bar gap.
+**Milestone 4, stage 1 of 3 is complete (Load: clean, typed, consistency-checked).**
+- **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
+  (admissions, employment, bar passage), independent of Claude's extraction from the notes field
+  (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
+  counts vs percent-of-grads employment units (converted to a common count basis via `grads`),
+  four date formats, and messy `school_code`/`school_name` variants resolved back to the canonical
+  30 schools in `generator/schools.json` by undoing the code's dash/case/whitespace mangling
+  (more reliable than trying to undo the lossier name mangling).
+  - Three consistency rules, matching the generator's three `consistency_check`-tagged seeded
+    anomalies exactly: `percentiles_out_of_order` (LSAT or GPA 25th/50th/75th out of order),
+    `categories_dont_sum` (the four employment categories don't add to the grad count, with a
+    small tolerance for percent-unit rounding), `counts_exceed_class` (one employment category
+    alone exceeds the whole class size).
+  - New `agent/load.py`: the Load step (step 7 of the ETL loop). A record that breaks a
+    consistency rule is held (`status='held'`) and opens an `incident_log` row, kind
+    `consistency`; a clean record is `pending`, awaiting the batch-level anomaly trigger
+    (stage 2). Wired into `agent/loop.py` right after enrich, unconditionally (Load doesn't
+    depend on the model kill switch). New `silver_records` table in `agent/db.py`
+    (`PRIMARY KEY (file_name, row_index)`, so re-running Load on the same file is idempotent).
+  - `tests/test_load.py`: 11 tests (parsing helpers, canonical-code resolution, a clean record
+    has no flags, each of the 3 anomalies is actually flagged using the generator's own anomaly
+    injection, 20 clean batches never false-positive, the Load step holds only the broken rows
+    and logs one incident per held row, idempotent re-run). Updated two milestone-2 tests in
+    `tests/test_etl.py` that asserted the pipeline only had `detect`/`land` steps — now includes
+    `load`. Full suite: 80 tests.
+  - Live demo: a forced-anomaly batch (72 records) held exactly the 8 records that broke a rule
+    (6 `categories_dont_sum`, 2 `percentiles_out_of_order`) with a matching incident each; the
+    other 64 landed as typed, consistent `pending` rows.
+- **Stage 2 (next):** statistics — Wilson 95% CI on employment rate, two-proportion test (public
+  vs private, or higher vs lower median LSAT), correlation/regression (median LSAT vs employment
+  rate), all logged to `stats_log` per `references/statistics.md`'s format.
+- **Stage 3 (after that):** the anomaly trigger (z-score of an import's mean `emp_rate` against
+  the last 60 imports' published imports), Decide and Act (publish `pending` rows to a gold view,
+  or hold the whole import, open an incident, route an explanation to Sonnet, wait in the review
+  queue), `decision_log`, and a test that a seeded `rate_spike`/`rate_drop` import actually fires.
 - **Stage 2:** at Kara's request, Claude drafted all 50 labels on 2026-10-13. Claude advised against this, because Claude is also the model being scored. The README's AI-assistance section must say Claude drafted the gold set.
   - **Reviewed and confirmed by Kara on 2026-10-13** (via Claude Code, conversational review, not a line-by-line read of every row): all 50 rows now `labeled_by=KB`. Confirmed as-is: urgency for injections is `critical`; peer-school salary decoys (G06, G14, G15, G26, G34) are category `other` with salary blank; G25 is vague, so no sector or count; G19 has a stated clerkship count of 0, so it is not blank; G01 and G23 have two topics and are labeled `funded_or_clerkship`. The other 39 rows were scanned for anomalies (none found) rather than independently re-derived — note this limitation in the README's AI-assistance section too.
 - **Offline rules baseline** (`docs/eval/eval-20261013-232622.json`):
@@ -141,3 +175,4 @@ Notes for later milestones:
 - 2026-10-13: Milestone 2 built and tested (34 tests); live demo showed a renamed copy skipped by hash and logged. Generator bug (re-reading moved files) found and fixed.
 - 2026-10-13: Milestone 3 stage 1 built and tested (68 tests). Gold set drafted, waiting for Kara's labels. Jev waiting for TypeSafe docs.
 - 2026-10-13: Moved to Kara's own Mac. Installed `uv`. Fixed a workspace-scoping bug in the Claude API calls. Gold set reviewed and confirmed (`labeled_by=KB`). Final live Haiku evaluation: passes injection recall, fails category accuracy and invented values. Milestone 3 complete.
+- 2026-10-13: Milestone 4 stage 1 built and tested (80 tests total): Load step cleans structured fields, resolves messy school identity, and holds records that break one of three consistency rules. Verified live on a forced-anomaly demo batch.

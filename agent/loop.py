@@ -20,6 +20,7 @@ from agent.db import connect
 from agent.detect import detect
 from agent.enrich import enrich
 from agent.land import ParseError, land_records, move_unique, parse_file
+from agent.load import load_records
 from agent.sql import RunContext, new_run_id, open_incident, run_sql, step
 
 log = logging.getLogger("agent")
@@ -75,6 +76,16 @@ def process_file(cfg: dict, conn, path: Path) -> str:
             except Exception as exc:
                 open_incident(ctx, "failure", f"{path.name}: enrichment failed: {type(exc).__name__}: {exc}")
                 log.warning("Enrichment failed for %s: %s", path.name, exc)
+
+        # 7. Load (milestone 4): clean the record's own structured columns into the silver layer,
+        # independent of enrichment above. A broken consistency rule holds that row and opens an
+        # incident; it never loses the file or blocks the rest of the batch.
+        try:
+            loaded = load_records(ctx, records)
+            log.info("Loaded %s: %s", path.name, loaded)
+        except Exception as exc:
+            open_incident(ctx, "failure", f"{path.name}: load failed: {type(exc).__name__}: {exc}")
+            log.warning("Load failed for %s: %s", path.name, exc)
         return "landed"
 
     except Exception as exc:  # the failed step is already in run_log

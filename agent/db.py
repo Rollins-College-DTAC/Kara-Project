@@ -73,6 +73,26 @@ SCHEMA = [
         value REAL, threshold REAL, passed INTEGER,
         questions_version TEXT, prompt_version TEXT, n_records INTEGER
     )""",
+    # ---- milestone 4: Load (clean, typed, consistency-checked)
+    """CREATE TABLE IF NOT EXISTS silver_records (
+        file_name TEXT, row_index INTEGER, run_id TEXT,
+        school_code TEXT,                -- canonical 'LS-01'..'LS-30', or NULL if unrecognized
+        school_name TEXT,                -- canonical name from generator/schools.json
+        school_name_raw TEXT,            -- the import's own (possibly messy) name, kept for audit
+        grad_year INTEGER, report_date TEXT,     -- ISO YYYY-MM-DD
+        class_size INTEGER, grads INTEGER,
+        acceptance_rate REAL,            -- fraction 0-1
+        lsat_25 INTEGER, lsat_50 INTEGER, lsat_75 INTEGER,
+        gpa_25 REAL, gpa_50 REAL, gpa_75 REAL,
+        scholarship_share REAL,          -- fraction 0-1
+        emp_bar_required INTEGER, emp_jd_advantage INTEGER, emp_other INTEGER, emp_unemployed INTEGER,
+        emp_rate REAL,                   -- emp_bar_required / grads: the forecast measure
+        bar_pass_rate REAL,              -- fraction 0-1
+        consistency_ok INTEGER, consistency_flags TEXT,   -- JSON list of broken rule names
+        status TEXT,                     -- held (consistency failed), pending (awaiting the batch trigger), published
+        landed_at TEXT,
+        PRIMARY KEY (file_name, row_index)
+    )""",
 ]
 
 
