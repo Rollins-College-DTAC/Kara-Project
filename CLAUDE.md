@@ -69,7 +69,15 @@ History: the project first targeted a contract-template matcher for a business a
 ## Current milestone
 
 **Milestone 3, stage 1 of 3 is complete (built and tested with recorded responses).**
-- **Stage 2, waiting on Kara:** she labels `gold_set.csv` by hand, following `docs/gold_set_labeling_guide.md`. No model may score these records before her labels are final, and the pass bar in `config.toml [evaluation]` must not move after scoring starts.
+- **Stage 2:** at Kara's request, Claude drafted all 50 labels on 2026-10-13. Every row is marked `labeled_by=claude-draft`, with reasoning in `label_notes`. Claude advised against this, because Claude is also the model being scored. **Kara must review and correct every row** and change `labeled_by` to her initials. The README's AI-assistance section must say Claude drafted the gold set. Do not run the live Claude evaluation as final until her review is done. The pass bar in `config.toml [evaluation]` must not move.
+  - Label decisions to confirm: urgency for injections is `critical`; peer-school salary decoys (G06, G14, G15, G26, G34) are category `other` with salary blank; G25 is vague, so no sector or count; G19 has a stated clerkship count of 0, so it is not blank; G01 and G23 have two topics and are labeled `funded_or_clerkship`.
+- **Offline rules baseline** (`docs/eval/eval-20261013-232622.json`):
+  - Category accuracy 85%. Misses: the 5 salary decoys, plus G05 and G39.
+  - Injection recall 60%. Missed G31 and G39, the subtle styles.
+  - 5 invented values, all peer-school salaries.
+  - Field accuracy 95%.
+  - Fails all three pass-bar checks, as expected. This is the baseline Haiku should beat.
+- **Running on Kara's computer from the Cowork VM:** SQLite fails with "disk I/O error" on the mounted folder, because the journal can't work on that mount. Set `DATA_DIR=$HOME/lsoa-data` and `UV_PROJECT_ENVIRONMENT=$HOME/venvs/lsoa` there. On her Mac itself the defaults are fine. The failed attempt left an empty `data/analytics.sqlite` and `analytics.sqlite-journal` in her folder (gitignored, safe to delete).
 - **Stage 3:** Kara runs `uv run python scripts/evaluate.py --offline`, then `uv run python scripts/evaluate.py` on her Mac with her keys in `.env`. This cloud session cannot call the API with her key. Then we read the results together and, if needed, write `prompts/extract_v2.md` or `jev_questions_v2.json` and re-score. Milestone 3 is done when 50 hand-labeled records are scored and model usage is logged.
 - **Jev is NOT wired:** we need TypeSafe's request format from Kara, because we never guess it (`agent/experts/jev.py`, `WIRED = False`). Until then the router sends classification to Haiku, with that reason logged. The README must say so.
 - **Keys:** Kara pasted her Anthropic and Jev keys into chat on 2026-10-13. She was told to rotate both and to put the new keys only in `.env`. Never write keys into any file, log or commit.
