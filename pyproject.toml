@@ -1,0 +1,15 @@
+[project]
+name = "law-school-outcomes-agent"
+version = "0.1.0"
+description = "Governed data agent: simulated law school disclosure and employment data (portfolio project)"
+requires-python = ">=3.12"
+# Milestone 1 uses only the Python standard library.
+# Later milestones add pinned packages here (TinyDB, Pydantic, Streamlit, ...), each approved first.
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest==8.3.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

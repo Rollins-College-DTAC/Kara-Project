@@ -1,0 +1,16 @@
+# Settings shared by the laptop, Docker and GitHub Actions.
+# Environment variables override these (for example GENERATOR_MINUTES).
+
+[generator]
+minutes = 10               # demo-length runs only; one import per interval
+interval_seconds = 60      # one import per minute
+seed = 42                  # same seed, same schools and same data
+inbox = "inbox"
+log_path = "generator_log.csv"
+records_min = 5
+records_max = 10
+warmup_imports = 5         # no seeded anomalies in the first imports, so a baseline exists
+anomaly_rate = 0.10        # about 1 import in 10 is a seeded anomaly
+duplicate_row_rate = 0.15  # chance an import contains an exact duplicate row
+renamed_copy_rate = 0.08   # chance an earlier file is re-sent under a new name
+injection_rate = 0.03      # chance a record's notes try to give instructions (for the injection test)
