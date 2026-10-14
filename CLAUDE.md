@@ -68,7 +68,7 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 4, stage 1 of 3 is complete (Load: clean, typed, consistency-checked).**
+**Milestone 4, stage 2 of 3 is complete (Load done; statistics done).**
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -96,9 +96,27 @@ History: the project first targeted a contract-template matcher for a business a
   - Live demo: a forced-anomaly batch (72 records) held exactly the 8 records that broke a rule
     (6 `categories_dont_sum`, 2 `percentiles_out_of_order`) with a matching incident each; the
     other 64 landed as typed, consistent `pending` rows.
-- **Stage 2 (next):** statistics — Wilson 95% CI on employment rate, two-proportion test (public
-  vs private, or higher vs lower median LSAT), correlation/regression (median LSAT vs employment
-  rate), all logged to `stats_log` per `references/statistics.md`'s format.
+- **Stage 2 delivered (2026-10-13):** `agent/stats.py` — the three methods Kara chose, pure
+  stdlib math (no new dependency needed yet): Wilson 95% CI per school's employment rate,
+  a two-proportion z-test (public vs private, pooled standard error), Pearson correlation
+  and simple linear regression (each school's median `lsat_50` vs its employment rate). Each
+  returns `{method, formula_latex, inputs, result, threshold, interpretation}` per
+  `references/statistics.md`'s format. `scripts/compute_stats.py` is a standing analytics
+  pass over everything in `silver_records` so far (not a per-import step, unlike the anomaly
+  trigger in stage 3) — aggregates each school's counts across every import landed to date,
+  logs each stat to the new `stats_log` table. Run it with `uv run python scripts/compute_stats.py`.
+  - `tests/test_stats.py`: 13 tests (Wilson CI against a textbook reference value, stays inside
+    [0, 1] at the n=0/all-or-nothing edges — found and fixed a floating-point edge case there —
+    two-proportion test on a large gap and on identical rates, perfect positive/negative
+    correlation, zero-variance x doesn't crash, aggregation sums across multiple imports per
+    school, `compute_all` skips the group test and correlation when there isn't enough data).
+    Full suite: 93 tests.
+  - Live check against the stage-1 demo data: r=0.72 between median LSAT and employment rate
+    (matches the generator's own design, where `base_rate` rises with `lsat_50`); public vs
+    private showed a real difference (p<0.0001) in that particular demo seed.
+  - **Not yet wired into the per-file ETL loop** — it's a standalone script for now, matching
+    `scripts/evaluate.py`'s pattern. The dashboard (milestone 5) will likely call it, or a
+    similar aggregate query, to render the Analytics page.
 - **Stage 3 (after that):** the anomaly trigger (z-score of an import's mean `emp_rate` against
   the last 60 imports' published imports), Decide and Act (publish `pending` rows to a gold view,
   or hold the whole import, open an incident, route an explanation to Sonnet, wait in the review
@@ -176,3 +194,4 @@ Notes for later milestones:
 - 2026-10-13: Milestone 3 stage 1 built and tested (68 tests). Gold set drafted, waiting for Kara's labels. Jev waiting for TypeSafe docs.
 - 2026-10-13: Moved to Kara's own Mac. Installed `uv`. Fixed a workspace-scoping bug in the Claude API calls. Gold set reviewed and confirmed (`labeled_by=KB`). Final live Haiku evaluation: passes injection recall, fails category accuracy and invented values. Milestone 3 complete.
 - 2026-10-13: Milestone 4 stage 1 built and tested (80 tests total): Load step cleans structured fields, resolves messy school identity, and holds records that break one of three consistency rules. Verified live on a forced-anomaly demo batch.
+- 2026-10-13: Milestone 4 stage 2 built and tested (93 tests total): Wilson CI, two-proportion test and correlation/regression, all stdlib math, logged to stats_log via a new standalone script.

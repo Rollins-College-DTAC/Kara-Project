@@ -93,6 +93,12 @@ SCHEMA = [
         landed_at TEXT,
         PRIMARY KEY (file_name, row_index)
     )""",
+    """CREATE TABLE IF NOT EXISTS stats_log (
+        run_id TEXT, step TEXT, method TEXT,
+        formula_latex TEXT, inputs_json TEXT,
+        result REAL, threshold REAL,
+        interpretation TEXT, computed_at TEXT
+    )""",
 ]
 
 
