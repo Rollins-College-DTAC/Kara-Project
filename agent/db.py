@@ -99,6 +99,13 @@ SCHEMA = [
         result REAL, threshold REAL,
         interpretation TEXT, computed_at TEXT
     )""",
+    # ---- milestone 4 stage 3: Decide (the anomaly trigger) and Act
+    """CREATE TABLE IF NOT EXISTS decision_log (
+        run_id TEXT, file_name TEXT, rule TEXT,   -- anomaly, forecast_check, drift
+        statistic REAL, threshold REAL, p_value REAL,
+        fired INTEGER, action TEXT,               -- publish, hold_and_alert, none (nothing to decide)
+        detail TEXT, decided_at TEXT
+    )""",
 ]
 
 

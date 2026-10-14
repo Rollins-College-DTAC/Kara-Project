@@ -18,6 +18,7 @@ from pathlib import Path
 from agent.config import load_agent_config
 from agent.db import connect
 from agent.detect import detect
+from agent.decide import decide_and_act
 from agent.enrich import enrich
 from agent.land import ParseError, land_records, move_unique, parse_file
 from agent.load import load_records
@@ -86,6 +87,16 @@ def process_file(cfg: dict, conn, path: Path) -> str:
         except Exception as exc:
             open_incident(ctx, "failure", f"{path.name}: load failed: {type(exc).__name__}: {exc}")
             log.warning("Load failed for %s: %s", path.name, exc)
+            return "landed"
+
+        # 8-9. Decide and Act (milestone 4 stage 3): the anomaly trigger, on whatever Load just
+        # marked 'pending'. Skipped if Load itself failed above, since there's nothing to decide.
+        try:
+            decision = decide_and_act(ctx)
+            log.info("Decided %s: %s", path.name, decision)
+        except Exception as exc:
+            open_incident(ctx, "failure", f"{path.name}: decide/act failed: {type(exc).__name__}: {exc}")
+            log.warning("Decide/Act failed for %s: %s", path.name, exc)
         return "landed"
 
     except Exception as exc:  # the failed step is already in run_log

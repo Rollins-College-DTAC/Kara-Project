@@ -68,7 +68,9 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 4, stage 2 of 3 is complete (Load done; statistics done).**
+**Milestone 4 is complete** (Load, statistics, and the anomaly trigger with Decide/Act).
+Next: Milestone 5 (Streamlit dashboard) — or iterate the milestone 3 prompts, or tackle Jev once
+TypeSafe's request format is in hand, if Kara wants to revisit those first.
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -117,10 +119,34 @@ History: the project first targeted a contract-template matcher for a business a
   - **Not yet wired into the per-file ETL loop** — it's a standalone script for now, matching
     `scripts/evaluate.py`'s pattern. The dashboard (milestone 5) will likely call it, or a
     similar aggregate query, to render the Analytics page.
-- **Stage 3 (after that):** the anomaly trigger (z-score of an import's mean `emp_rate` against
-  the last 60 imports' published imports), Decide and Act (publish `pending` rows to a gold view,
-  or hold the whole import, open an incident, route an explanation to Sonnet, wait in the review
-  queue), `decision_log`, and a test that a seeded `rate_spike`/`rate_drop` import actually fires.
+- **Stage 3 delivered (2026-10-13):** `agent/decide.py` — Decide and Act, wired into
+  `agent/loop.py` right after Load, unconditionally (like Load, it doesn't depend on the model
+  kill switch). Decide: z-score of an import's mean `emp_rate` (over its `status='pending'`
+  rows) against the batch means of the last 60 *published* imports, pulled straight from
+  `silver_records` grouped by `file_name` (no separate rolling-window table to keep in sync).
+  Fires when `|z| > 3`. Fewer than 5 prior published imports (`MIN_HISTORY`) and it auto-publishes
+  instead of computing a meaningless z-score — mirrors the generator's own `warmup_imports`.
+  Act: not fired -> every pending row in that import becomes `published`; fired -> the whole
+  import (even rows that individually passed consistency) becomes `held`, and a `trigger`
+  incident opens for a person to release. New `decision_log` table (adds `file_name` and
+  `detail` beyond the reference schema, for "every step visible").
+  - `tests/test_decide.py`: 5 tests (too little history auto-publishes, a normal batch doesn't
+    fire, a spiked batch fires and holds every row in that import plus opens exactly one
+    incident, no pending records is a no-op, and — the one that would have caught a real bug —
+    only the most recent 60 published imports count toward the window, not older history).
+    Updated `tests/test_etl.py`'s step-set assertions again (now `detect`, `land`, `load`,
+    `decide`, `act`). Full suite: 98 tests.
+  - Live demo: generated 80 imports at the default (realistic) anomaly rate and ran them
+    through the full loop. 3 of 80 fired; cross-checked against `generator_log.csv`'s answer
+    key, 2 of those 3 were the actual seeded `rate_spike`/`rate_drop` anomalies (both caught —
+    recall 2/2 in this run) and 1 was a borderline false positive at z=3.02 (precision 2/3 in
+    this run) — a believable result for a `|z|>3` threshold with natural sampling noise, not a
+    bug. `references/requirements.md`'s precision/recall reporting (for milestone 7's governance
+    docs) should use many more imports than this one demo run before drawing real conclusions.
+  - **Deliberately not done yet:** routing a held import's explanation to Sonnet. The router
+    already supports an `"explain"` task, but no expert implements it (only `classify`/`extract`
+    exist on `ClaudeExpert`). Building that out is more natural once milestone 5's dashboard
+    actually has somewhere to show the explanation — wiring an unused call now would be premature.
 - **Stage 2:** at Kara's request, Claude drafted all 50 labels on 2026-10-13. Claude advised against this, because Claude is also the model being scored. The README's AI-assistance section must say Claude drafted the gold set.
   - **Reviewed and confirmed by Kara on 2026-10-13** (via Claude Code, conversational review, not a line-by-line read of every row): all 50 rows now `labeled_by=KB`. Confirmed as-is: urgency for injections is `critical`; peer-school salary decoys (G06, G14, G15, G26, G34) are category `other` with salary blank; G25 is vague, so no sector or count; G19 has a stated clerkship count of 0, so it is not blank; G01 and G23 have two topics and are labeled `funded_or_clerkship`. The other 39 rows were scanned for anomalies (none found) rather than independently re-derived — note this limitation in the README's AI-assistance section too.
 - **Offline rules baseline** (`docs/eval/eval-20261013-232622.json`):
@@ -195,3 +221,4 @@ Notes for later milestones:
 - 2026-10-13: Moved to Kara's own Mac. Installed `uv`. Fixed a workspace-scoping bug in the Claude API calls. Gold set reviewed and confirmed (`labeled_by=KB`). Final live Haiku evaluation: passes injection recall, fails category accuracy and invented values. Milestone 3 complete.
 - 2026-10-13: Milestone 4 stage 1 built and tested (80 tests total): Load step cleans structured fields, resolves messy school identity, and holds records that break one of three consistency rules. Verified live on a forced-anomaly demo batch.
 - 2026-10-13: Milestone 4 stage 2 built and tested (93 tests total): Wilson CI, two-proportion test and correlation/regression, all stdlib math, logged to stats_log via a new standalone script.
+- 2026-10-13: Milestone 4 stage 3 built and tested (98 tests total): the anomaly trigger (z-score vs last 60 published imports), Decide and Act wired into the per-file loop. Live demo caught both seeded rate_spike/rate_drop anomalies in an 80-import run, plus one borderline false positive. Milestone 4 complete.

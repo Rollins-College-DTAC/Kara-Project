@@ -134,7 +134,7 @@ def test_every_step_has_a_start_and_a_finish(cfg, tmp_path):
     generate(cfg, tmp_path, 3)
     loop.scan_once(cfg)
     rows = sql(cfg, "SELECT * FROM run_log")
-    assert {r["step"] for r in rows} == {"detect", "land", "load"}  # load: milestone 4, Clean/Load
+    assert {r["step"] for r in rows} == {"detect", "land", "load", "decide", "act"}  # milestone 4
     for r in rows:
         assert r["started_at"] and r["finished_at"] and r["finished_at"] >= r["started_at"]
         assert r["status"] == "ok" and len(r["file_sha256"]) == 64
@@ -150,7 +150,7 @@ def test_sql_is_logged_with_placeholders_and_file_names(cfg, tmp_path):
     rows = sql(cfg, "SELECT * FROM sql_log")
     assert rows
     for r in rows:
-        assert r["run_id"] and r["file_name"] and r["step"] in ("detect", "land", "load")
+        assert r["run_id"] and r["file_name"] and r["step"] in ("detect", "land", "load", "decide", "act")
         assert "?" in r["sql_text"]
         assert r["file_name"] not in r["sql_text"]            # values never pasted into SQL text
         assert r["duration_ms"] is not None
