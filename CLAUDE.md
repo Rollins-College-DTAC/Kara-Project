@@ -71,12 +71,62 @@ History: the project first targeted a contract-template matcher for a business a
 **Milestone 5 is complete** (Live Run, Data, Pipeline History, Models, Analytics, Governance
 pages; the required forecast graph).
 
-**Milestone 6 is complete** (all code; deployment itself is Kara's step -- see below). This
-milestone needs real external accounts Claude cannot act on alone -- a GitHub repository Kara
-owns and pushes to, GitHub Actions secrets (real API keys, never handled by Claude), fine-grained
-GitHub tokens, and a Streamlit Community Cloud account connection. Claude built and tested
-everything that's pure code; creating the repo, pushing, setting secrets, and connecting
+**Milestone 6 is complete** (all code; deployment itself is Kara's step). Needs a GitHub repo
+Kara owns and pushes to, real secrets, and a Streamlit Community Cloud account -- none of that
+is something Claude did or should do unilaterally. Full checklist of what's left for Kara is in
+"Milestone history" below (Milestone 6 section).
+
+**Milestone 7, stage 1 of 2 is complete (everything buildable without a live deployment).**
+- **Stage 1 delivered (2026-10-20):**
+  - `docs/ai-use-policy.md`, `docs/system-card.md`, `docs/risk-register.md`: heading-only
+    templates (`references/governance.md`: "the student writes the content"). The risk
+    register's five required rows (Jev's unpublished architecture, prompt injection, a
+    misfiring trigger, leaked keys, runaway cost) are filled in as row labels only -- those five
+    are explicitly required by the reference doc, not Claude's invention; the likelihood/impact/
+    mitigation cells are blank for Kara.
+  - `scripts/injection_test.py`: the prompt-injection test. Drops planted notes (the project's
+    own `INJECTION_NOTES`, or an instructor-supplied text file via `--notes`) through the real
+    pipeline and reports from `record_status`/`incident_log` which were caught. With the kill
+    switch off, this exercises the rules expert's own regex and reproduces milestone 3's
+    documented result exactly: 3 of 5 caught, the two subtle styles missed. `scripts/check_bingo.py`
+    copied in from the skill's assets (already a complete implementation, not a stub).
+  - `LICENSE` (MIT), `README.md` (architecture, screenshots, how to run, statistics/trigger/
+    forecast summary, governance section, deployment status, the BINGO card, an AI-assistance
+    section left for Kara to write), `docs/overview/motion_prompt.md` (the Claude Motion prompt
+    from `references/overview-video.md`, pre-filled with this project's specifics, ready to use
+    once there's a live deployment to screenshot).
+  - **Real screenshots, not mockups:** regenerated the 90-import demo data (models disabled, no
+    API cost) and captured `docs/images/live_run_overview.jpg` (flow chart + held-import alert
+    banner), `load_step_sql.jpg` (a step panel's real SQL and params), `models_moe_swimlane.jpg`,
+    `analytics_forecast.jpg` (the correlation scatter and forecast chart). These back several
+    BINGO squares directly.
+  - **The BINGO card reports its true, incomplete state, on purpose:** 10/16 required squares,
+    4/2 minimum in the N column, 15/24 total -- `scripts/check_bingo.py README.md` exits 1 and
+    lists exactly what's missing: Jev classifies records (not wired), Jev vs. Claude on the gold
+    set (can't compare what isn't wired), and the four squares that need a real deployment
+    (GitHub Actions run, Streamlit Cloud app, Claude Routine report, Motion video) plus
+    governance docs and human review (docs aren't filled in yet). Every ticked square was
+    checked against a file that actually exists (`tests/test_check_bingo.py` guards this).
+    Nothing is ticked without real proof behind it, per `references/bingo.md`'s own rule.
+  - `tests/test_injection_test.py` (3 tests), `tests/test_check_bingo.py` (2 tests). Full
+    suite: 177 tests.
+- **Stage 2 (remaining, blocked on Kara/external factors, not something to keep building
+  around):** fill in the three governance docs' actual content; wire Jev once TypeSafe's
+  request format is in hand; deploy Milestone 6 for real; take fresh screenshots against that
+  live deployment; make the Claude Motion video in a claude.ai chat; then re-run
+  `scripts/check_bingo.py` -- it should pass once those are done, since everything buildable
+  without them is already in place.
+
+## Milestone history (detailed, oldest work at the bottom)
+
+### Milestone 6 (cloud: GitHub Actions, data branch, Streamlit Cloud)
+
+This milestone needs real external accounts Claude cannot act on alone -- a GitHub repository
+Kara owns and pushes to, GitHub Actions secrets (real API keys, never handled by Claude),
+fine-grained GitHub tokens, and a Streamlit Community Cloud account connection. Claude built and
+tested everything that's pure code; creating the repo, pushing, setting secrets, and connecting
 Streamlit Cloud are Kara's steps (see "What Kara still needs to do" below).
+
 - **Stage 1 delivered (2026-10-20):**
   - `agent/cloud_loop.py`: runs the whole pipeline once a minute, N times, inside one GitHub
     Actions job (schedules can't run more often than every 5 minutes and can be skipped, so the
@@ -149,8 +199,6 @@ Streamlit Cloud are Kara's steps (see "What Kara still needs to do" below).
   - **Not done:** actually deploying (that's Kara's steps above). Also deliberately not built:
     `st.login`-based sign-in as an alternative to the passcode (dashboard.md offers either; the
     passcode is simpler to set up and doesn't need an OIDC provider configured).
-
-## Milestone history (detailed, oldest work at the bottom)
 
 Full stage-by-stage notes for completed milestones. A new session only needs this when it's
 asked about something specific from an earlier milestone; otherwise "Current milestone" above
@@ -433,3 +481,4 @@ Notes for later milestones:
 - 2026-10-20: Milestone 5 stage 4 built and tested (145 tests total): Governance page, and the required forecast graph (ETS model, prediction interval, naive baseline, backtest) on the Analytics page. Added statsmodels plus two compatibility pins (scipy, pandas) found by hitting real fitting errors. Milestone 5 complete.
 - 2026-10-20: Milestone 6 stage 1 built and tested (158 tests total): agent/cloud_loop.py, agent/export.py, scripts/apply_review.py, and the three GitHub Actions workflows. A test accidentally made ~28 more real Haiku calls (~$0.05) with the still-unrotated milestone-3 key before being fixed. Reorganized CLAUDE.md: "Current milestone" had grown to 300 lines of full project history; moved completed milestones' detail into a new "Milestone history" section.
 - 2026-10-20: Milestone 6 stage 2 built and tested (172 tests total): cloud-mode database fetch, Release/Reject button protection and cloud workflow_dispatch, the Claude Routine fallback script. Milestone 6 complete (code side); deployment itself is Kara's step.
+- 2026-10-20: Milestone 7 stage 1 built and tested (177 tests total): governance doc templates, scripts/injection_test.py, LICENSE, README.md with real screenshots and an honestly-incomplete BINGO card (10/16 required, exits 1 on purpose), the Claude Motion prompt pre-filled. Remaining work (governance doc content, Jev wiring, real deployment, the Motion video) is Kara's or blocked on external factors.
