@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-10-20T23:47:37.921+00:00",
+  "imports_processed_today": 1,
+  "held_imports": [],
+  "incidents_open": [],
+  "model_usage_by_expert_today": [
+    {
+      "expert": "claude-haiku-4-5",
+      "calls": 14,
+      "tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "expert": "rules",
+      "calls": 14,
+      "tokens": 0,
+      "cost_usd": 0.0
+    }
+  ],
+  "latest_published_batch": {
+    "file_name": "law_school_outcomes_20261020-2346.csv",
+    "mean_rate": 0.4857625
+  },
+  "ai_use_policy_flags": []
+}

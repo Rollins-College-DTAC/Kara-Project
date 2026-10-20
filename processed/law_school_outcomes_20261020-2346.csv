@@ -1,0 +1,9 @@
+school_name,school_code,grad_year,report_date,class_size,acceptance_rate,lsat_25,lsat_50,lsat_75,gpa_25,gpa_50,gpa_75,scholarship_share,grads,emp_unit,emp_bar_required,emp_jd_advantage,emp_other,emp_unemployed,bar_pass_rate,notes
+Fennimore Bay College of Law, LS-08,2025,03/18/2026,156,73.1%,152,154,156,3.16,,3.41,33.5%,154,count,64,42,37,11,70.6%,N/A
+  Bramblecourt College of Law ,ls-30,2024,03/28/2025,406,33.4%,166,168,170,3.52,3.67,3.77,0.218,401,count,244,76,61,20,0.723,8 graduates held school-funded positions; 2 of those were judicial clerkships.
+Quillon State College of Law, LS-05,2022,"March 07, 2023",136,70.3%,151,155,158,3.17,3.32,3.42,62.9%,128,pct,47.7,25.8,20.3,6.2,0.651,Scholarship recipients must stay in good academic standing (2.75 or above) to renew.
+Northwick Park College of Law,ls-24,2022,"March 10, 2023",204,0.593,155,158,160,3.27,3.42,3.52,0.45,201,count,111,44,31,15,69.0%,Bar passage figures cover first-time takers in two jurisdictions only.
+  Tallow Creek School of Law ,LS04,2022,03/25/2023,340,80.5%,149,151,153,3.04,3.19,3.29,0.268,337,count,124,99,82,32,0.529,For details contact the career office at careers@lawsch.example.edu or (555) 014-9638.
+Harrowgate University Sch. of Law, LS-22,2022,03/07/2023,155,31.5%,165,167,169,3.47,3.62,3.72,67.3%,152,pct,59.9,18.4,16.4,5.3,87.1%,Scholarship recipients must stay in good academic standing (3.0 or above) to renew.
+Caldermoor State University College of Law,LS27,2023,2024-03-02,352,75.3%,152,154,157,3.16,3.31,3.41,63.4%,343,count,171,98,42,32,0.651,For details contact the career office at careers@law.example.edu or (555) 014-8883.
+  Tallow Creek School of Law ,LS04,2022,03/25/2023,340,80.5%,149,151,153,3.04,3.19,3.29,0.268,337,count,124,99,82,32,0.529,For details contact the career office at careers@lawsch.example.edu or (555) 014-9638.
