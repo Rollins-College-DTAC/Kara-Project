@@ -1,7 +1,5 @@
-"""Analytics page (references/dashboard.md): the student's statistical methods, trigger
-precision and recall. Each chart has a "How this was calculated" expander.
-
-The forecast and backtest (required, needs statsmodels) is a separate stage -- not built yet.
+"""Analytics page (references/dashboard.md): the student's statistical methods, the forecast
+and backtest, trigger precision and recall. Each chart has a "How this was calculated" expander.
 """
 
 from __future__ import annotations
@@ -15,9 +13,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import streamlit as st
 
 from agent.config import ROOT
+from agent.forecast import SEASONAL_PERIODS, backtest, fit_and_forecast, naive_forecast
 from agent.stats import aggregate_by_school
 from dashboard.analytics import load_generator_log, trigger_precision_recall
-from dashboard.db import all_decisions, latest_stats, read_only_connection, silver_records, sqlite_path
+from dashboard.db import (all_decisions, batch_mean_series, latest_stats, read_only_connection,
+                          silver_records, sqlite_path)
 
 st.set_page_config(page_title="Law School Outcomes Agent — Analytics", layout="wide")
 st.title("Analytics")
@@ -69,6 +69,49 @@ else:
         with st.expander("How this was calculated"):
             st.latex(corr["formula_latex"])
             st.json(json.loads(corr["inputs_json"]))
+
+st.subheader("Forecast: employment rate, next imports")
+series_rows = batch_mean_series(conn)
+values = [r["emp_rate"] for r in series_rows]
+min_needed = 2 * SEASONAL_PERIODS
+if len(values) < min_needed:
+    st.caption(f"Need at least {min_needed} published imports for a seasonal forecast "
+              f"(have {len(values)}). Run more imports through the loop to see this.")
+else:
+    horizon = 6
+    try:
+        mean, lo, hi = fit_and_forecast(values, horizon)
+        naive = naive_forecast(values, horizon)
+        chart: dict[int, dict] = {i: {"t": i, "actual": v} for i, v in enumerate(values)}
+        chart[len(values) - 1]["forecast"] = values[-1]
+        chart[len(values) - 1]["naive"] = values[-1]
+        for h in range(horizon):
+            t = len(values) + h
+            chart[t] = {"t": t, "forecast": mean[h], "naive": naive[h]}
+        st.line_chart(list(chart.values()), x="t", y=["actual", "forecast", "naive"])
+
+        st.write(f"Next {horizon} imports, with a 95% prediction interval:")
+        st.dataframe([{"imports_ahead": h + 1, "forecast": round(mean[h], 4),
+                      "pi_low": round(lo[h], 4), "pi_high": round(hi[h], 4),
+                      "naive_baseline": round(naive[h], 4)} for h in range(horizon)], hide_index=True)
+
+        holdout = min(SEASONAL_PERIODS, len(values) // 3)
+        bt = backtest(values, holdout)
+        st.write(f"Backtest: the last {holdout} published imports held out, scored against what "
+                f"actually happened.")
+        cols = st.columns(4)
+        cols[0].metric("Model MAE", round(bt.model_mae, 4))
+        cols[1].metric("Naive MAE", round(bt.naive_mae, 4))
+        cols[2].metric("Model MAPE", f"{bt.model_mape:.1f}%" if bt.model_mape is not None else "—")
+        cols[3].metric("Naive MAPE", f"{bt.naive_mape:.1f}%" if bt.naive_mape is not None else "—")
+        if bt.model_mae >= bt.naive_mae:
+            st.warning("The model isn't beating the naive baseline on this backtest.")
+        with st.expander("How this was calculated"):
+            st.write("ETS model (trend + a 12-import seasonal cycle, matching the generator's own "
+                    "batch_target_rate design) vs. a naive 'same as last period' baseline. "
+                    "MAE/MAPE computed on the held-out points.")
+    except Exception as exc:
+        st.warning(f"Forecast failed to fit: {exc}")
 
 st.subheader("Anomaly trigger: precision and recall")
 decisions = all_decisions(conn)

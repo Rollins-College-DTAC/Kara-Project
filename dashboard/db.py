@@ -142,3 +142,25 @@ def latest_stats(conn: sqlite3.Connection) -> list[dict]:
 
 def all_decisions(conn: sqlite3.Connection) -> list[dict]:
     return rows(conn, "SELECT * FROM decision_log ORDER BY decided_at")
+
+
+# ---------------------------------------------------------------- Governance page
+
+def all_eval_log(conn: sqlite3.Connection) -> list[dict]:
+    return rows(conn, "SELECT * FROM eval_log ORDER BY evaluated_at")
+
+
+def all_incidents(conn: sqlite3.Connection, limit: int = 500) -> list[dict]:
+    return rows(conn, "SELECT * FROM incident_log ORDER BY opened_at DESC LIMIT ?", (limit,))
+
+
+def all_review_queue(conn: sqlite3.Connection) -> list[dict]:
+    return rows(conn, "SELECT * FROM review_queue ORDER BY opened_at DESC")
+
+
+def batch_mean_series(conn: sqlite3.Connection) -> list[dict]:
+    """One row per published import: its mean emp_rate, oldest first. The same series the
+    anomaly trigger watches, and what the required forecast graph forecasts."""
+    return rows(conn, "SELECT file_name, MIN(landed_at) AS landed_at, AVG(emp_rate) AS emp_rate "
+                      "FROM silver_records WHERE status = 'published' AND emp_rate IS NOT NULL "
+                      "GROUP BY file_name ORDER BY landed_at")

@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 # Milestone 1 (generator) uses only the standard library.
 # Milestone 2 adds TinyDB (raw document layer) and APScheduler (polls the inbox).
 # Milestone 3 adds the Anthropic SDK, Pydantic (validation) and httpx (for the Jev client).
-# Milestone 5 adds Streamlit (the dashboard).
+# Milestone 5 adds Streamlit (the dashboard) and statsmodels (the required forecast graph).
 dependencies = [
     "tinydb==4.8.2",
     "apscheduler==3.10.4",
@@ -14,6 +14,9 @@ dependencies = [
     "pydantic==2.14.1",
     "httpx==0.28.1",
     "streamlit==1.50.0",
+    "statsmodels==0.14.4",
+    "scipy==1.13.1",  # newer scipy drops the 'disp' kwarg statsmodels 0.14.4's optimizer still passes
+    "pandas==2.3.3",  # ETSModel.get_prediction needs a pandas-indexed series, not a bare array
 ]
 
 [dependency-groups]

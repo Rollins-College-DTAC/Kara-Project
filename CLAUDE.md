@@ -68,7 +68,11 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 5, stage 3 of 4 is complete (Live Run, Data, Pipeline History, Models, Analytics pages).**
+**Milestone 5 is complete** (Live Run, Data, Pipeline History, Models, Analytics, Governance
+pages; the required forecast graph). Next: Milestone 6 (cloud: GitHub Actions, data branch,
+Streamlit Community Cloud, Claude Routine) -- or revisit the still-open side threads (Jev
+unwired, milestone 3's prompt-quality gaps, the Release/Reject action's local-write-to-SQLite
+that milestone 6 is supposed to replace).
 - **Stage 1 delivered (2026-10-20):** Added Streamlit (`streamlit==1.50.0`, named in
   `references/dashboard.md`). Pinned Python to 3.12 (`.python-version`) after `uv sync` failed
   building Pillow from source under the 3.15 interpreter `uv` had installed (no prebuilt wheel
@@ -151,10 +155,32 @@ History: the project first targeted a contract-template matcher for a business a
     before being killed, made 135 real Claude Haiku calls (~$0.18) using the API key still in
     `.env` from milestone 3 — the same key Kara was already told to rotate. Kara will rotate it
     herself. Every other demo run in this project explicitly disables model calls.
-- **Stage 4 (next, last of this milestone):** Governance page (gold-set scores per expert, Jev
-  calibration chart, cost against the budget, review queue, incidents, kill-switch status, links
-  to the docs) and the required forecast graph (needs `statsmodels`, named in `references/statistics.md`
-  so pre-approved, not yet added) with its prediction interval and backtest against a naive baseline.
+- **Stage 4 delivered (2026-10-20), milestone 5 is now complete.**
+  - Governance page: kill-switch status read live from config/env, gold-set scores per expert
+    (latest run per expert/metric from `eval_log`), Jev calibration (reads the latest
+    `docs/eval/*.json` file directly, since calibration bins aren't in `eval_log` itself; shows
+    Haiku's calibration with a note that Jev isn't wired), cost against budget (today's and
+    all-time tokens/cost from `model_usage_log`, compared with `config.toml`'s daily cap), review
+    queue and incident summaries, and a status line per governance doc (none written yet --
+    that's milestone 7).
+  - The required forecast graph, added to the Analytics page: `agent/forecast.py` fits an ETS
+    model (trend + the generator's own documented 12-import seasonal cycle) with a 95% prediction
+    interval, compared against a naive "same as last period" baseline, backtested on the most
+    recent held-out imports with MAE/MAPE. The series forecast is the mean `emp_rate` per
+    *published* import (the same series the anomaly trigger watches) via a new
+    `dashboard/db.py` query, `batch_mean_series`.
+  - Added `statsmodels` (named in `references/statistics.md`) and, as it turned out, two
+    supporting pins: `scipy==1.13.1` (newer scipy drops a deprecated optimizer kwarg
+    `statsmodels==0.14.4`'s LBFGS path still passes) and `pandas==2.3.3` (`ETSModel.get_prediction`
+    needs a pandas-indexed series, not a bare array — both were resolved by trial and error against
+    real fitting errors, not guessed).
+  - `tests/test_governance.py` (5 tests), `tests/test_forecast.py` (8 tests, fitting a real ETS
+    model against a synthetic trend+seasonal+noise series rather than mocking statsmodels out).
+    Full suite: 145 tests.
+  - Verified live in the browser: Governance page's every section, and the forecast chart/backtest
+    on the Analytics page against the demo data -- including an honest "the model isn't beating
+    naive" warning on this particular short, noisy run, which is the system working as intended,
+    not a bug.
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -309,3 +335,4 @@ Notes for later milestones:
 - 2026-10-20: Milestone 5 stage 1 built and tested (110 tests total): Streamlit added, Python pinned to 3.12 (uv's default 3.15 couldn't build Pillow from source). Live Run page with the flow chart, step panels, and a working Release/Reject alert banner, verified by clicking through it in a browser against a real 90-import demo run.
 - 2026-10-20: Milestone 5 stage 2 built and tested (119 tests total): Data and Pipeline History pages, both verified live in the browser against a fresh 90-import demo run.
 - 2026-10-20: Milestone 5 stage 3 built and tested (132 tests total): Models and Analytics pages. Found and fixed two real bugs along the way (compute_stats.py including non-published rows; a crash in aggregate_by_school for a school with no LSAT data). An unrelated verification script accidentally made 135 real Haiku API calls (~$0.18) with the old milestone-3 key still in .env; Kara to rotate it.
+- 2026-10-20: Milestone 5 stage 4 built and tested (145 tests total): Governance page, and the required forecast graph (ETS model, prediction interval, naive baseline, backtest) on the Analytics page. Added statsmodels plus two compatibility pins (scipy, pandas) found by hitting real fitting errors. Milestone 5 complete.
