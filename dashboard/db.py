@@ -74,3 +74,51 @@ def recent_run_ids(conn: sqlite3.Connection, limit: int = 30) -> list[dict]:
     return rows(conn, "SELECT run_id, file_name, MIN(started_at) AS started_at, "
                       "MAX(finished_at) AS finished_at FROM run_log "
                       "GROUP BY run_id ORDER BY started_at DESC LIMIT ?", (limit,))
+
+
+def run_log_rows_for_runs(conn: sqlite3.Connection, run_ids: list[str]) -> list[dict]:
+    if not run_ids:
+        return []
+    placeholders = ",".join("?" for _ in run_ids)
+    return rows(conn, f"SELECT * FROM run_log WHERE run_id IN ({placeholders})", tuple(run_ids))
+
+
+# ---------------------------------------------------------------- Data page
+
+def silver_records(conn: sqlite3.Connection, status: str | None = None, school_code: str | None = None,
+                   grad_year: int | None = None, limit: int = 5000) -> list[dict]:
+    where, params = [], []
+    if status is not None:
+        where.append("status = ?")
+        params.append(status)
+    if school_code is not None:
+        where.append("school_code = ?")
+        params.append(school_code)
+    if grad_year is not None:
+        where.append("grad_year = ?")
+        params.append(grad_year)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    params.append(limit)
+    return rows(conn, f"SELECT * FROM silver_records {clause} ORDER BY landed_at DESC LIMIT ?", tuple(params))
+
+
+def distinct_statuses(conn: sqlite3.Connection) -> list[str]:
+    return [r["status"] for r in rows(conn, "SELECT DISTINCT status FROM silver_records ORDER BY status")]
+
+
+def distinct_school_codes(conn: sqlite3.Connection) -> list[str]:
+    return [r["school_code"] for r in rows(
+        conn, "SELECT DISTINCT school_code FROM silver_records WHERE school_code IS NOT NULL ORDER BY school_code")]
+
+
+def distinct_grad_years(conn: sqlite3.Connection) -> list[int]:
+    return [r["grad_year"] for r in rows(
+        conn, "SELECT DISTINCT grad_year FROM silver_records WHERE grad_year IS NOT NULL ORDER BY grad_year")]
+
+
+def imports_per_minute(conn: sqlite3.Connection, limit_minutes: int = 60) -> list[dict]:
+    """One row per calendar minute, from the Detect step's own timestamps -- not
+    generator_log.csv, which the agent never reads as input."""
+    return rows(conn, "SELECT substr(started_at, 1, 16) AS minute, COUNT(*) AS n FROM run_log "
+                      "WHERE step = 'detect' AND status = 'ok' GROUP BY minute ORDER BY minute DESC LIMIT ?",
+               (limit_minutes,))

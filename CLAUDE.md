@@ -68,7 +68,7 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 5, stage 1 of 3 is complete (Live Run page).**
+**Milestone 5, stage 2 of 3 is complete (Live Run, Data, Pipeline History pages).**
 - **Stage 1 delivered (2026-10-20):** Added Streamlit (`streamlit==1.50.0`, named in
   `references/dashboard.md`). Pinned Python to 3.12 (`.python-version`) after `uv sync` failed
   building Pillow from source under the 3.15 interpreter `uv` had installed (no prebuilt wheel
@@ -101,10 +101,25 @@ History: the project first targeted a contract-template matcher for a business a
     Release on a held import actually published its rows and closed its incident (confirmed by
     querying the SQLite file directly afterward). Reset that demo data afterward (it's
     gitignored, regenerate it with the generator whenever you want to look at the dashboard).
-- **Stage 2 (next):** Data page (clean records with filters, data-quality metrics, imports per
-  minute) and Pipeline history page (step durations over the last 30 runs, rows in/out, log rows
-  for a selected run).
-- **Stage 3 (after that):** Models (MoE) page (swimlane timeline, task-to-expert flow, per-expert
+- **Stage 2 delivered (2026-10-20):** Data and Pipeline History pages, as Streamlit's classic
+  `pages/` multipage convention (`dashboard/pages/1_Data.py`, `2_Pipeline_History.py`).
+  - Data page: total/consistent/published/unknown-school-code counts, a table of which
+    consistency rules broke and how often (a record can break more than one, so this counts
+    rule occurrences, not records), an imports-per-minute chart built from the Detect step's own
+    `run_log` timestamps (never `generator_log.csv`, which the agent must not read as input),
+    and a filterable (status, school, grad year) record table.
+  - Pipeline History page: mean/median/max duration per step over the last 30 runs, rows
+    in/out per run read from each run's **Land** step specifically (summing across steps would
+    mix units — Detect counts files, Land counts records), and a run picker showing that run's
+    full `run_log`/`sql_log`.
+  - New pure-logic modules so the aggregation is unit-testable without Streamlit:
+    `dashboard/pipeline.py` (step durations, rows per run) and `dashboard/quality.py` (flag
+    counts, status breakdown). `dashboard/db.py` gained the read-only queries both pages need.
+  - `tests/test_pipeline.py` (5 tests), `tests/test_quality.py` (4 tests). Full suite: 119 tests.
+  - Verified live: regenerated the 90-import demo data, ran it through the loop, and clicked
+    through both new pages in the browser against it. Cleaned up the demo data afterward again
+    (gitignored, not committed).
+- **Stage 3 (next):** Models (MoE) page (swimlane timeline, task-to-expert flow, per-expert
   table), Analytics page (the stage-2 statistics, the required forecast graph — needs `statsmodels`,
   not yet added, ask before adding it), Governance page (gold-set scores, Jev calibration, cost vs
   budget, review queue, incidents, kill-switch status).
@@ -260,3 +275,4 @@ Notes for later milestones:
 - 2026-10-13: Milestone 4 stage 2 built and tested (93 tests total): Wilson CI, two-proportion test and correlation/regression, all stdlib math, logged to stats_log via a new standalone script.
 - 2026-10-13: Milestone 4 stage 3 built and tested (98 tests total): the anomaly trigger (z-score vs last 60 published imports), Decide and Act wired into the per-file loop. Live demo caught both seeded rate_spike/rate_drop anomalies in an 80-import run, plus one borderline false positive. Milestone 4 complete.
 - 2026-10-20: Milestone 5 stage 1 built and tested (110 tests total): Streamlit added, Python pinned to 3.12 (uv's default 3.15 couldn't build Pillow from source). Live Run page with the flow chart, step panels, and a working Release/Reject alert banner, verified by clicking through it in a browser against a real 90-import demo run.
+- 2026-10-20: Milestone 5 stage 2 built and tested (119 tests total): Data and Pipeline History pages, both verified live in the browser against a fresh 90-import demo run.
