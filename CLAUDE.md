@@ -68,7 +68,7 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 5, stage 2 of 3 is complete (Live Run, Data, Pipeline History pages).**
+**Milestone 5, stage 3 of 4 is complete (Live Run, Data, Pipeline History, Models, Analytics pages).**
 - **Stage 1 delivered (2026-10-20):** Added Streamlit (`streamlit==1.50.0`, named in
   `references/dashboard.md`). Pinned Python to 3.12 (`.python-version`) after `uv sync` failed
   building Pillow from source under the 3.15 interpreter `uv` had installed (no prebuilt wheel
@@ -119,10 +119,42 @@ History: the project first targeted a contract-template matcher for a business a
   - Verified live: regenerated the 90-import demo data, ran it through the loop, and clicked
     through both new pages in the browser against it. Cleaned up the demo data afterward again
     (gitignored, not committed).
-- **Stage 3 (next):** Models (MoE) page (swimlane timeline, task-to-expert flow, per-expert
-  table), Analytics page (the stage-2 statistics, the required forecast graph — needs `statsmodels`,
-  not yet added, ask before adding it), Governance page (gold-set scores, Jev calibration, cost vs
-  budget, review queue, incidents, kill-switch status).
+- **Stage 3 delivered (2026-10-20):** Models (MoE) and Analytics pages.
+  - Models page: a swimlane (`st.scatter_chart`, one lane per expert, points colored by task —
+    Altair-backed, so no new dependency for this or the grouped bar below), task-to-expert flow
+    as a grouped bar (dashboard.md allows "Sankey or grouped bar"), a per-expert table (calls,
+    latency, confidence, tokens, cost). `dashboard/models.py`'s `per_expert_summary` excludes
+    cache hits from the average-latency figure specifically (a cache hit logs 0ms, which would
+    drag the average toward zero) while still counting them as calls.
+  - Analytics page: the three stage-2 statistics rendered from the latest `stats_log` run, each
+    with a "How this was calculated" expander (`st.latex` + the plugged-in values), a scatter of
+    median LSAT vs employment rate, and trigger precision/recall scored against
+    `generator_log.csv` — reading the answer key here is correct (requirements.md asks for this
+    report), unlike the ETL itself, which must never read it. Ground truth positive = the
+    generator's own `expected_detector == 'zscore'`, so a consistency-check anomaly correctly
+    counts as a true negative for *this* trigger rather than a miss.
+  - **Found and fixed a real bug while building this:** `scripts/compute_stats.py` was filtering
+    `consistency_ok = 1` instead of `status = 'published'`, so held, pending and rejected rows
+    were leaking into the statistics — contradicts requirements.md's storage-layer table
+    ("Analytics (gold)... published imports only"). Fixed in both the script and the Analytics
+    page's correlation scatter. Also found and fixed a latent crash in `agent/stats.py`:
+    `aggregate_by_school` raised `StatisticsError` for a school with zero LSAT values recorded
+    (`statistics.median` on an empty sequence); now returns `median_lsat_50=None` for that school,
+    and `compute_all` excludes it from the correlation only, while it still gets its own Wilson CI.
+  - `tests/test_models_page.py` (4 tests), `tests/test_analytics_page.py` (6 tests),
+    `tests/test_compute_stats.py` (1 regression test for the published-only fix), plus 2 new
+    tests in `tests/test_stats.py` for the no-LSAT-data fix. Full suite: 132 tests.
+  - Verified live in the browser against the demo data, including the swimlane, grouped bar,
+    per-expert table, Wilson CI table, correlation scatter, and the precision/recall metrics.
+  - **Incident during this stage, not a code bug:** an earlier verification script of mine hung
+    attempting live API calls (forgot to disable the model kill switch in that one script) and,
+    before being killed, made 135 real Claude Haiku calls (~$0.18) using the API key still in
+    `.env` from milestone 3 — the same key Kara was already told to rotate. Kara will rotate it
+    herself. Every other demo run in this project explicitly disables model calls.
+- **Stage 4 (next, last of this milestone):** Governance page (gold-set scores per expert, Jev
+  calibration chart, cost against the budget, review queue, incidents, kill-switch status, links
+  to the docs) and the required forecast graph (needs `statsmodels`, named in `references/statistics.md`
+  so pre-approved, not yet added) with its prediction interval and backtest against a naive baseline.
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -276,3 +308,4 @@ Notes for later milestones:
 - 2026-10-13: Milestone 4 stage 3 built and tested (98 tests total): the anomaly trigger (z-score vs last 60 published imports), Decide and Act wired into the per-file loop. Live demo caught both seeded rate_spike/rate_drop anomalies in an 80-import run, plus one borderline false positive. Milestone 4 complete.
 - 2026-10-20: Milestone 5 stage 1 built and tested (110 tests total): Streamlit added, Python pinned to 3.12 (uv's default 3.15 couldn't build Pillow from source). Live Run page with the flow chart, step panels, and a working Release/Reject alert banner, verified by clicking through it in a browser against a real 90-import demo run.
 - 2026-10-20: Milestone 5 stage 2 built and tested (119 tests total): Data and Pipeline History pages, both verified live in the browser against a fresh 90-import demo run.
+- 2026-10-20: Milestone 5 stage 3 built and tested (132 tests total): Models and Analytics pages. Found and fixed two real bugs along the way (compute_stats.py including non-published rows; a crash in aggregate_by_school for a school with no LSAT data). An unrelated verification script accidentally made 135 real Haiku API calls (~$0.18) with the old milestone-3 key still in .env; Kara to rotate it.

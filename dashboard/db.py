@@ -122,3 +122,23 @@ def imports_per_minute(conn: sqlite3.Connection, limit_minutes: int = 60) -> lis
     return rows(conn, "SELECT substr(started_at, 1, 16) AS minute, COUNT(*) AS n FROM run_log "
                       "WHERE step = 'detect' AND status = 'ok' GROUP BY minute ORDER BY minute DESC LIMIT ?",
                (limit_minutes,))
+
+
+# ---------------------------------------------------------------- Models (MoE) page
+
+def all_model_usage(conn: sqlite3.Connection, limit: int = 20000) -> list[dict]:
+    return rows(conn, "SELECT * FROM model_usage_log ORDER BY called_at DESC LIMIT ?", (limit,))
+
+
+# ---------------------------------------------------------------- Analytics page
+
+def latest_stats(conn: sqlite3.Connection) -> list[dict]:
+    """Every stats_log row from the most recent scripts/compute_stats.py run."""
+    r = rows(conn, "SELECT run_id FROM stats_log ORDER BY computed_at DESC LIMIT 1")
+    if not r:
+        return []
+    return rows(conn, "SELECT * FROM stats_log WHERE run_id = ? ORDER BY method, computed_at", (r[0]["run_id"],))
+
+
+def all_decisions(conn: sqlite3.Connection) -> list[dict]:
+    return rows(conn, "SELECT * FROM decision_log ORDER BY decided_at")

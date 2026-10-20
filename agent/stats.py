@@ -104,7 +104,7 @@ class SchoolAggregate:
     code: str
     grads: int
     bar_required: int
-    median_lsat_50: float
+    median_lsat_50: float | None
 
     @property
     def emp_rate(self) -> float:
@@ -120,10 +120,11 @@ def aggregate_by_school(rows: list[dict]) -> dict[str, SchoolAggregate]:
             by_code.setdefault(row["school_code"], []).append(row)
     out = {}
     for code, group in by_code.items():
+        lsat_values = [g["lsat_50"] for g in group if g["lsat_50"] is not None]
         out[code] = SchoolAggregate(
             code=code, grads=sum(g["grads"] for g in group),
             bar_required=sum(g["emp_bar_required"] for g in group),
-            median_lsat_50=statistics.median(g["lsat_50"] for g in group if g["lsat_50"] is not None),
+            median_lsat_50=statistics.median(lsat_values) if lsat_values else None,
         )
     return out
 
@@ -141,7 +142,7 @@ def compute_all(rows: list[dict]) -> list[dict]:
             "public", sum(a.bar_required for a in public), sum(a.grads for a in public),
             "private", sum(a.bar_required for a in private), sum(a.grads for a in private)))
 
-    with_lsat = [a for a in aggregates.values() if a.grads]
+    with_lsat = [a for a in aggregates.values() if a.grads and a.median_lsat_50 is not None]
     if len(with_lsat) >= 3:
         results.append(correlation_and_regression(
             "median LSAT", "employment rate",

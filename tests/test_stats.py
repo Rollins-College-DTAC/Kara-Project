@@ -83,6 +83,23 @@ def test_aggregate_by_school_sums_across_multiple_imports():
     assert agg["LS-01"].emp_rate == pytest.approx(100 / 150)
 
 
+def test_aggregate_by_school_handles_a_school_with_no_lsat_data_at_all():
+    rows = [_row(grads=100, bar_required=70, lsat_50=None)]
+    agg = aggregate_by_school(rows)
+    assert agg["LS-01"].median_lsat_50 is None
+    assert agg["LS-01"].grads == 100  # still aggregated; just no LSAT figure to report
+
+
+def test_compute_all_excludes_no_lsat_schools_from_correlation_but_keeps_their_ci():
+    rows = [_row("LS-01", grads=100, bar_required=70, lsat_50=None),
+           _row("LS-02", grads=100, bar_required=60, lsat_50=155),
+           _row("LS-03", grads=100, bar_required=80, lsat_50=165)]
+    results = compute_all(rows)
+    methods = [r["method"] for r in results]
+    assert methods.count("wilson_ci") == 3           # every school still gets its own CI
+    assert "pearson_correlation_and_regression" not in methods  # only 2 of 3 have LSAT data
+
+
 def test_aggregate_by_school_skips_rows_missing_identity_or_counts():
     rows = [_row(school_code=None), _row(grads=0), {"school_code": "LS-02", "grads": 10,
                                                       "emp_bar_required": None, "lsat_50": 160}]

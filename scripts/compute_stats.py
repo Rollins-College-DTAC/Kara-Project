@@ -1,9 +1,9 @@
 """Compute the three statistics (Wilson CI, two-proportion test, correlation/regression) over
-everything loaded into silver_records so far, and log each to stats_log.
+every published silver_records row so far, and log each to stats_log.
 
-This is a standing analytics pass over the accumulated gold-eligible data (every consistent
-record landed to date), not a per-import step like the anomaly trigger (stage 3) is. Run it
-whenever you want the dashboard's Analytics page numbers refreshed.
+This is a standing analytics pass over the gold data (references/requirements.md: "Analytics
+(gold)... published imports only"), not a per-import step like the anomaly trigger (stage 3) is.
+Run it whenever you want the dashboard's Analytics page numbers refreshed.
 
 Usage:
   python scripts/compute_stats.py
@@ -27,7 +27,7 @@ def run(cfg: dict) -> list[dict]:
     conn = connect(cfg["sqlite_path"])
     ctx = RunContext(conn=conn, run_id=new_run_id(), file_name="stats:aggregate")
     rows = [dict(r) for r in conn.execute(
-        "SELECT * FROM silver_records WHERE consistency_ok = 1").fetchall()]
+        "SELECT * FROM silver_records WHERE status = 'published'").fetchall()]
     results = compute_all(rows)
     for stat in results:
         extra = {k: v for k, v in stat.items()
