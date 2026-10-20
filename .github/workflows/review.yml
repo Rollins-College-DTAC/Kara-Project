@@ -1,0 +1,52 @@
+# A human reviewer's Release/Reject decision, started by the cloud dashboard (it never
+# writes the database file directly -- references/dashboard.md). One workflow_dispatch call
+# per decision.
+name: review
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_id:
+        description: "The held import's trigger incident ID (incident_log.incident_id)"
+        required: true
+      decision:
+        description: "release or reject"
+        required: true
+      reviewer:
+        description: "Who decided (recorded in incident_log.decided_by)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pipeline   # same group as pipeline.yml: never race the data branch
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure git for commits
+        run: |
+          git config --global user.name "review-bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check out the data branch into state/
+        run: |
+          git fetch origin data:data
+          git worktree add state data
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Apply the decision
+        run: |
+          uv run python scripts/apply_review.py --state state/ \
+            --incident-id "${{ inputs.incident_id }}" \
+            --decision "${{ inputs.decision }}" \
+            --reviewer "${{ inputs.reviewer }}"

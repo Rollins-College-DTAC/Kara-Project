@@ -69,10 +69,64 @@ History: the project first targeted a contract-template matcher for a business a
 ## Current milestone
 
 **Milestone 5 is complete** (Live Run, Data, Pipeline History, Models, Analytics, Governance
-pages; the required forecast graph). Next: Milestone 6 (cloud: GitHub Actions, data branch,
-Streamlit Community Cloud, Claude Routine) -- or revisit the still-open side threads (Jev
-unwired, milestone 3's prompt-quality gaps, the Release/Reject action's local-write-to-SQLite
-that milestone 6 is supposed to replace).
+pages; the required forecast graph).
+
+**Milestone 6, stage 1 of 2 is complete (the cloud pipeline code).** Important: this milestone
+needs real external accounts Claude cannot act on alone -- a GitHub repository Kara owns and
+pushes to, GitHub Actions secrets (real API keys, never handled by Claude), fine-grained GitHub
+tokens, and a Streamlit Community Cloud account connection. Claude built and tested everything
+that's pure code; creating the repo, pushing, setting secrets, and connecting Streamlit Cloud
+are Kara's steps (see "What Kara still needs to do" below).
+- **Stage 1 delivered (2026-10-20):**
+  - `agent/cloud_loop.py`: runs the whole pipeline once a minute, N times, inside one GitHub
+    Actions job (schedules can't run more often than every 5 minutes and can be skipped, so the
+    per-minute cadence lives inside the job, not a cron). Reuses the generator's own `run()`
+    loop by hooking into its `sleep` callback to do ETL + stats + export after each minute's
+    import, rather than reimplementing the generator's sequencing. After each minute: `git add`,
+    amend the one existing commit (or make the first one), `git push --force` to the `data`
+    branch -- keeps that branch one commit deep, matching `references/cloud.md`.
+  - `agent/export.py`: writes `exports/daily_summary.json` (imports processed today, held
+    imports, open incidents, cost/tokens by expert, the latest published batch, and anything
+    that might break the AI use policy) -- a plain aggregation of existing log tables, no model
+    call. This is what a Claude Routine (or its GitHub Actions fallback, stage 2) reads.
+  - `scripts/apply_review.py`: what `.github/workflows/review.yml` calls when a reviewer clicks
+    Release/Reject on the cloud dashboard. Looks up the held import from its trigger incident,
+    reuses `agent/release.py` exactly as the local dashboard does, then pushes the data branch --
+    the cloud dashboard itself never writes the database file directly.
+  - `.github/workflows/pipeline.yml`, `tests.yml`, `review.yml`, adapted from
+    `assets/pipeline.yml`. `requirements.txt` exported via `uv export` for Streamlit Cloud (needs
+    regenerating whenever `pyproject.toml` changes).
+  - `tests/test_export.py` (5 tests), `tests/test_cloud_loop.py` (5 tests, including real git
+    commands against a throwaway local bare repo standing in for GitHub -- never a real remote),
+    `tests/test_apply_review.py` (3 tests). Full suite: 158 tests.
+  - **Incident during this stage, not a code bug:** a test I wrote (`test_run_processes_...`)
+    forgot to disable the model kill switch, and the still-unrotated milestone-3 key in `.env`
+    made ~28 more real Haiku calls (~$0.05) before I noticed the test running suspiciously slowly
+    and fixed it. Combined with the stage-3 incident, that's roughly $0.23 of unintended spend
+    this session, all from the one key Kara already plans to rotate. Added a `cfg_overrides`
+    parameter to `cloud_loop.run()` specifically so tests never need a real key, and checked every
+    other test in the suite is clean.
+- **What Kara still needs to do, when ready to actually deploy (not yet done):**
+  1. Create the GitHub repository (if not already done) and push this project to it.
+  2. Add repo secrets: `ANTHROPIC_API_KEY`, `JEV_API_KEY` (once Jev is wired).
+  3. Turn on secret scanning and push protection before making the repo public.
+  4. Create a Streamlit Community Cloud app from `main`, entry point `dashboard/app.py`.
+  5. Create fine-grained GitHub PATs (`GH_DATA_TOKEN`: read-only contents, this repo only;
+     `GH_REVIEW_TOKEN`: Actions write, this repo only) and add them as Streamlit secrets, along
+     with a reviewer allowlist or passcode.
+  6. Run the `pipeline` workflow once manually (`workflow_dispatch`) to create the `data` branch.
+- **Stage 2 (next):** the dashboard's cloud-mode database fetch (GitHub contents API, cached,
+  read-only) and protecting the Release/Reject buttons (sign-in or a reviewer passcode), plus the
+  Claude Routine or its GitHub Actions fallback that writes `reports/<date>.md`.
+
+## Milestone history (detailed, oldest work at the bottom)
+
+Full stage-by-stage notes for completed milestones. A new session only needs this when it's
+asked about something specific from an earlier milestone; otherwise "Current milestone" above
+and the Log below are enough to pick up where things left off.
+
+### Milestone 5 (Streamlit dashboard)
+
 - **Stage 1 delivered (2026-10-20):** Added Streamlit (`streamlit==1.50.0`, named in
   `references/dashboard.md`). Pinned Python to 3.12 (`.python-version`) after `uv sync` failed
   building Pillow from source under the 3.15 interpreter `uv` had installed (no prebuilt wheel
@@ -181,6 +235,8 @@ that milestone 6 is supposed to replace).
     on the Analytics page against the demo data -- including an honest "the model isn't beating
     naive" warning on this particular short, noisy run, which is the system working as intended,
     not a bug.
+### Milestone 4 (Load, statistics, anomaly trigger)
+
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -257,6 +313,8 @@ that milestone 6 is supposed to replace).
     already supports an `"explain"` task, but no expert implements it (only `classify`/`extract`
     exist on `ClaudeExpert`). Building that out is more natural once milestone 5's dashboard
     actually has somewhere to show the explanation — wiring an unused call now would be premature.
+### Milestone 3 (expert models, MoE router, gold set)
+
 - **Stage 2:** at Kara's request, Claude drafted all 50 labels on 2026-10-13. Claude advised against this, because Claude is also the model being scored. The README's AI-assistance section must say Claude drafted the gold set.
   - **Reviewed and confirmed by Kara on 2026-10-13** (via Claude Code, conversational review, not a line-by-line read of every row): all 50 rows now `labeled_by=KB`. Confirmed as-is: urgency for injections is `critical`; peer-school salary decoys (G06, G14, G15, G26, G34) are category `other` with salary blank; G25 is vague, so no sector or count; G19 has a stated clerkship count of 0, so it is not blank; G01 and G23 have two topics and are labeled `funded_or_clerkship`. The other 39 rows were scanned for anomalies (none found) rather than independently re-derived — note this limitation in the README's AI-assistance section too.
 - **Offline rules baseline** (`docs/eval/eval-20261013-232622.json`):
@@ -274,6 +332,8 @@ that milestone 6 is supposed to replace).
 - **Eval harness bug found and fixed:** `scripts/evaluate.py`'s classify loop gave up after one invalid structured answer from Haiku, unlike `agent/enrich.py`'s `_classify`, which retries once first. 3 records (G04, G05, G19) hit this in the very first live run (Haiku occasionally returns the wrong probability-key set, a sampling flake, not a prompt bug — a direct rerun of the same 3 records immediately came back valid). Fixed the eval loop to retry once on `InvalidAnswer`, matching production, with a regression test (`test_evaluate_retries_once_on_invalid_classify_answer_like_enrich`). Also fixed a pre-existing flaky test (`test_budget_cap_switches_to_rules_and_opens_one_incident`) that ordered by `called_at` with no tiebreaker; now orders by `rowid`. Full suite (69 tests) now passes reliably on repeated runs.
 - **Pre-existing flaky test:** `tests/test_models.py::test_budget_cap_switches_to_rules_and_opens_one_incident` fails when run as part of the full suite (passes alone) — test-order dependent, not caused by the workspace-header fix. Not yet investigated.
 
+#### Milestone 3 stage 1
+
 Milestone 3 stage 1 delivered:
 - Dependencies, pinned: `anthropic==1.13.0`, `pydantic==2.14.1`, `httpx==0.28.1`
 - `config.toml [models]`: model names, kill switch, thresholds (category confidence 0.6, injection 0.5), token caps, estimated prices (confirm on the pricing page). `[evaluation]`: the pass bar (category accuracy at least 0.90, invented values 0, injection recall 1.0) and a 150k token cap for an evaluation run. `agent/config.py` reads `.env` without logging values
@@ -288,6 +348,8 @@ Milestone 3 stage 1 delivered:
 - `scripts/make_gold_set.py` drafted `gold_set.csv` (50 rows: 5 injections, 3 empty, 22 hard, 20 ordinary; label columns blank; refuses to overwrite labels). `agent/evaluation.py` and `scripts/evaluate.py` report accuracy, per-class precision and recall, Brier score, calibration bins, urgency, injection recall, field accuracy, invented values and latency by expert. Results go to `docs/eval/*.json` and `eval_log`
 - `tests/test_models.py`: 34 tests with a fake Claude client. Total suite: 68 tests
 - No-key demo: 8 imports ran through rules (54 extracted, 4 without notes, 2 injections quarantined). The rules expert misses the subtle injection styles, which the gold set should show
+
+### Milestone 2 (ETL loop: Detect and Land)
 
 Milestone 2 delivered (Detect and Land, steps 1 and 2 of the ETL loop):
 - Dependencies added, pinned: `tinydb==4.8.2`, `apscheduler==3.10.4`
@@ -304,6 +366,8 @@ Milestone 2 delivered (Detect and Land, steps 1 and 2 of the ETL loop):
 Deliberately NOT done yet (later milestones): redaction (before any model call, milestone 3), routing and classification, extraction, Pydantic validation, cleaning into SQLite silver tables (exact duplicate rows inside a file are still in the raw layer), statistics, trigger.
 
 Run locally: `uv sync`; terminal 1 `uv run python -m generator.generate --minutes 10`; terminal 2 `uv run python -m agent.loop`; then `uv run python scripts/show_log.py`.
+
+### Milestone 1 (repo, generator)
 
 Milestone 1 delivered:
 - `pyproject.toml` (Python 3.12+, no runtime dependencies yet, pytest pinned for dev), `config.toml` (all generator settings; `GENERATOR_MINUTES` env var overrides)
@@ -336,3 +400,4 @@ Notes for later milestones:
 - 2026-10-20: Milestone 5 stage 2 built and tested (119 tests total): Data and Pipeline History pages, both verified live in the browser against a fresh 90-import demo run.
 - 2026-10-20: Milestone 5 stage 3 built and tested (132 tests total): Models and Analytics pages. Found and fixed two real bugs along the way (compute_stats.py including non-published rows; a crash in aggregate_by_school for a school with no LSAT data). An unrelated verification script accidentally made 135 real Haiku API calls (~$0.18) with the old milestone-3 key still in .env; Kara to rotate it.
 - 2026-10-20: Milestone 5 stage 4 built and tested (145 tests total): Governance page, and the required forecast graph (ETS model, prediction interval, naive baseline, backtest) on the Analytics page. Added statsmodels plus two compatibility pins (scipy, pandas) found by hitting real fitting errors. Milestone 5 complete.
+- 2026-10-20: Milestone 6 stage 1 built and tested (158 tests total): agent/cloud_loop.py, agent/export.py, scripts/apply_review.py, and the three GitHub Actions workflows. A test accidentally made ~28 more real Haiku calls (~$0.05) with the still-unrotated milestone-3 key before being fixed. Reorganized CLAUDE.md: "Current milestone" had grown to 300 lines of full project history; moved completed milestones' detail into a new "Milestone history" section.
