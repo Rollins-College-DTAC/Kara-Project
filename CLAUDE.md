@@ -68,9 +68,46 @@ History: the project first targeted a contract-template matcher for a business a
 
 ## Current milestone
 
-**Milestone 4 is complete** (Load, statistics, and the anomaly trigger with Decide/Act).
-Next: Milestone 5 (Streamlit dashboard) — or iterate the milestone 3 prompts, or tackle Jev once
-TypeSafe's request format is in hand, if Kara wants to revisit those first.
+**Milestone 5, stage 1 of 3 is complete (Live Run page).**
+- **Stage 1 delivered (2026-10-20):** Added Streamlit (`streamlit==1.50.0`, named in
+  `references/dashboard.md`). Pinned Python to 3.12 (`.python-version`) after `uv sync` failed
+  building Pillow from source under the 3.15 interpreter `uv` had installed (no prebuilt wheel
+  yet for a Python that new) — 3.12 matches `pyproject.toml`'s own `requires-python` floor and
+  has wheels for everything.
+  - `dashboard/db.py`: read-only SQLite access (`file:...?mode=ro`) for every page; a separate
+    `writable_connection` exists only for the one human-decision exception below.
+  - `dashboard/flow.py`: builds the live flow chart's DOT graph from `run_log` rows, pure string
+    logic with no Streamlit import so it's unit-testable. Colors by status (greys out steps the
+    current run hasn't reached), and the Decide -> Publish / Hold and alert branch not taken is
+    dashed.
+  - `agent/release.py`: the alert banner's Release/Reject action. Only rows a *trigger* held
+    (`consistency_ok=1`) are affected — a row that failed its own consistency check (stage 1 of
+    milestone 4) is a separate problem and is left alone. Requires a name (`decided_by`); writes
+    straight to SQLite locally, the one exception to "only the agent writes" the project allows
+    for a human decision — milestone 6 replaces this with a GitHub Actions `workflow_dispatch`
+    call for the cloud deployment, per `references/dashboard.md` and `references/cloud.md`.
+  - `dashboard/app.py`: the Live Run page itself (`st.fragment(run_every=5)` for both the alert
+    banner and the flow chart/step panels, so they self-refresh). Shows the graph, one expander
+    per step with its message, row counts, the SQL that ran, and the model calls for
+    classify/extract steps; the Decide section renders the z-score formula with `st.latex`.
+  - `tests/test_flow.py` (8 tests): grey/colored/dashed-branch logic, quote/length escaping.
+    `tests/test_release.py` (4 tests): requires a name, only releases trigger-held rows (a
+    broken-consistency row stays held), reject excludes instead of publishing, releasing twice
+    is a no-op. Full suite: 110 tests.
+  - **Verified live in the browser**, not just by test: generated 90 demo imports into the
+    project's own `inbox/`/`data/` (gitignored, not committed), ran the full loop, started the
+    dashboard with `preview_start`, and clicked through it — the alert banner listed every held
+    import, the flow chart colored and branched correctly for the latest run, and clicking
+    Release on a held import actually published its rows and closed its incident (confirmed by
+    querying the SQLite file directly afterward). Reset that demo data afterward (it's
+    gitignored, regenerate it with the generator whenever you want to look at the dashboard).
+- **Stage 2 (next):** Data page (clean records with filters, data-quality metrics, imports per
+  minute) and Pipeline history page (step durations over the last 30 runs, rows in/out, log rows
+  for a selected run).
+- **Stage 3 (after that):** Models (MoE) page (swimlane timeline, task-to-expert flow, per-expert
+  table), Analytics page (the stage-2 statistics, the required forecast graph — needs `statsmodels`,
+  not yet added, ask before adding it), Governance page (gold-set scores, Jev calibration, cost vs
+  budget, review queue, incidents, kill-switch status).
 - **Stage 1 delivered (2026-10-13):** `agent/clean.py` cleans each record's own structured columns
   (admissions, employment, bar passage), independent of Claude's extraction from the notes field
   (milestone 3). Handles the generator's messiness: text numbers, percent-strings vs fractions,
@@ -222,3 +259,4 @@ Notes for later milestones:
 - 2026-10-13: Milestone 4 stage 1 built and tested (80 tests total): Load step cleans structured fields, resolves messy school identity, and holds records that break one of three consistency rules. Verified live on a forced-anomaly demo batch.
 - 2026-10-13: Milestone 4 stage 2 built and tested (93 tests total): Wilson CI, two-proportion test and correlation/regression, all stdlib math, logged to stats_log via a new standalone script.
 - 2026-10-13: Milestone 4 stage 3 built and tested (98 tests total): the anomaly trigger (z-score vs last 60 published imports), Decide and Act wired into the per-file loop. Live demo caught both seeded rate_spike/rate_drop anomalies in an 80-import run, plus one borderline false positive. Milestone 4 complete.
+- 2026-10-20: Milestone 5 stage 1 built and tested (110 tests total): Streamlit added, Python pinned to 3.12 (uv's default 3.15 couldn't build Pillow from source). Live Run page with the flow chart, step panels, and a working Release/Reject alert banner, verified by clicking through it in a browser against a real 90-import demo run.

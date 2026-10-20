@@ -6,13 +6,14 @@ requires-python = ">=3.12"
 # Milestone 1 (generator) uses only the standard library.
 # Milestone 2 adds TinyDB (raw document layer) and APScheduler (polls the inbox).
 # Milestone 3 adds the Anthropic SDK, Pydantic (validation) and httpx (for the Jev client).
-# Later milestones add more pinned packages (Streamlit, ...), each approved first.
+# Milestone 5 adds Streamlit (the dashboard).
 dependencies = [
     "tinydb==4.8.2",
     "apscheduler==3.10.4",
     "anthropic==1.13.0",
     "pydantic==2.14.1",
     "httpx==0.28.1",
+    "streamlit==1.50.0",
 ]
 
 [dependency-groups]
