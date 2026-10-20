@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-11-25T01:04:53.723+00:00",
+  "imports_processed_today": 10,
+  "held_imports": [],
+  "incidents_open": [],
+  "model_usage_by_expert_today": [],
+  "latest_published_batch": {
+    "file_name": "aba_employment_2025.json",
+    "mean_rate": 0.8149917948717949
+  },
+  "ai_use_policy_flags": []
+}
