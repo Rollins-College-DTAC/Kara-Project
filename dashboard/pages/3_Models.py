@@ -12,8 +12,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import streamlit as st
 
-from dashboard.db import all_model_usage, read_only_connection, sqlite_path
+from dashboard.db import all_model_usage, read_only_connection
 from dashboard.models import per_expert_summary, task_expert_counts
+from dashboard.resolve import resolve_db_path
 
 st.set_page_config(page_title="Law School Outcomes Agent — Models (MoE)", layout="wide")
 st.title("Models (MoE)")
@@ -21,7 +22,7 @@ st.caption("Simulated data only. Portfolio demonstration, not a real law-school 
 st.caption("\"Mixture of experts\" here is an application-level router sending each task to an "
           "expert model, not the learned-gate architecture inside some large models.")
 
-PATH = sqlite_path()
+PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()

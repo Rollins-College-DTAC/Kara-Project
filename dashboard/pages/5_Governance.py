@@ -16,8 +16,9 @@ import streamlit as st
 
 from agent.config import ROOT, load_agent_config
 from dashboard.db import (all_eval_log, all_incidents, all_model_usage, all_review_queue,
-                          read_only_connection, sqlite_path)
+                          read_only_connection)
 from dashboard.governance import incident_summary, latest_gold_scores, review_queue_summary, tokens_and_cost_on
+from dashboard.resolve import resolve_db_path
 
 st.set_page_config(page_title="Law School Outcomes Agent — Governance", layout="wide")
 st.title("Governance")
@@ -32,7 +33,7 @@ else:
     st.warning("Model calls are OFF (MODEL_CALLS_ENABLED=false or config.toml [models].enabled=false). "
               "Every record falls back to the rules expert.")
 
-PATH = sqlite_path()
+PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()

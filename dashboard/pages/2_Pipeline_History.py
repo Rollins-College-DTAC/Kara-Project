@@ -13,14 +13,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import streamlit as st
 
 from dashboard.db import (read_only_connection, recent_run_ids, run_log_for, run_log_rows_for_runs,
-                          sql_log_for, sqlite_path)
+                          sql_log_for)
 from dashboard.pipeline import rows_per_run, step_duration_summary
+from dashboard.resolve import resolve_db_path
 
 st.set_page_config(page_title="Law School Outcomes Agent — Pipeline History", layout="wide")
 st.title("Pipeline History")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 
-PATH = sqlite_path()
+PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()

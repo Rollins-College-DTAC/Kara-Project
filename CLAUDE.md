@@ -71,12 +71,12 @@ History: the project first targeted a contract-template matcher for a business a
 **Milestone 5 is complete** (Live Run, Data, Pipeline History, Models, Analytics, Governance
 pages; the required forecast graph).
 
-**Milestone 6, stage 1 of 2 is complete (the cloud pipeline code).** Important: this milestone
-needs real external accounts Claude cannot act on alone -- a GitHub repository Kara owns and
-pushes to, GitHub Actions secrets (real API keys, never handled by Claude), fine-grained GitHub
-tokens, and a Streamlit Community Cloud account connection. Claude built and tested everything
-that's pure code; creating the repo, pushing, setting secrets, and connecting Streamlit Cloud
-are Kara's steps (see "What Kara still needs to do" below).
+**Milestone 6 is complete** (all code; deployment itself is Kara's step -- see below). This
+milestone needs real external accounts Claude cannot act on alone -- a GitHub repository Kara
+owns and pushes to, GitHub Actions secrets (real API keys, never handled by Claude), fine-grained
+GitHub tokens, and a Streamlit Community Cloud account connection. Claude built and tested
+everything that's pure code; creating the repo, pushing, setting secrets, and connecting
+Streamlit Cloud are Kara's steps (see "What Kara still needs to do" below).
 - **Stage 1 delivered (2026-10-20):**
   - `agent/cloud_loop.py`: runs the whole pipeline once a minute, N times, inside one GitHub
     Actions job (schedules can't run more often than every 5 minutes and can be skipped, so the
@@ -115,9 +115,40 @@ are Kara's steps (see "What Kara still needs to do" below).
      `GH_REVIEW_TOKEN`: Actions write, this repo only) and add them as Streamlit secrets, along
      with a reviewer allowlist or passcode.
   6. Run the `pipeline` workflow once manually (`workflow_dispatch`) to create the `data` branch.
-- **Stage 2 (next):** the dashboard's cloud-mode database fetch (GitHub contents API, cached,
-  read-only) and protecting the Release/Reject buttons (sign-in or a reviewer passcode), plus the
-  Claude Routine or its GitHub Actions fallback that writes `reports/<date>.md`.
+  7. Add Streamlit secrets once the above exist: `GH_DATA_TOKEN`, `GH_REPO_OWNER`, `GH_REPO_NAME`
+     (cloud-mode database fetch activates automatically once these are set), `GH_REVIEW_TOKEN`
+     (activates the Release/Reject workflow_dispatch instead of a local write), and optionally
+     `REVIEWER_PASSCODE` (gates the Release/Reject buttons; without it, anyone who opens the
+     public app can decide).
+- **Stage 2 delivered (2026-10-20):**
+  - `dashboard/remote.py`: the GitHub API calls (contents API for the database fetch, a
+    `workflow_dispatch` call for `review.yml`), each taking its HTTP function as a parameter so
+    tests never touch a real network. `dashboard/resolve.py` is the thin Streamlit-aware wiring
+    every page now calls instead of `sqlite_path()` directly: `resolve_db_path()` fetches from
+    GitHub (cached 30s) when `GH_DATA_TOKEN`/`GH_REPO_OWNER`/`GH_REPO_NAME` are set in Streamlit
+    secrets, otherwise it's the exact same local read as before. All 6 pages updated.
+  - `dashboard/app.py`'s alert banner: a `REVIEWER_PASSCODE` secret (if set) gates the Release/
+    Reject controls behind a password field -- everyone can still see what's held, matching
+    "visitors can watch; only the reviewer can decide" (references/dashboard.md). `_decide()`
+    branches on whether `GH_REVIEW_TOKEN` is configured: locally, writes straight to SQLite via
+    `agent/release.py` exactly as stage 1 of milestone 5 did; in the cloud, calls
+    `trigger_review_workflow` instead, which starts `review.yml` -- the dashboard never writes
+    the database file directly there.
+  - `scripts/daily_report.py` + `.github/workflows/daily_report.yml`: the Claude Routine
+    fallback (references/cloud.md section 8, for when Routines aren't on the class plan). Reads
+    `exports/daily_summary.json` and `docs/ai-use-policy.md` (if written), asks Sonnet for a
+    plain-English report, writes `reports/<date>.md`, commits it to `main`.
+  - `tests/test_remote.py` (6 tests), `tests/test_resolve.py` (3 tests, confirming the fallback
+    to local behavior with no secrets configured -- the normal case for local dev and for this
+    test environment), `tests/test_daily_report.py` (5 tests, a fake client, never a real call).
+    Full suite: 172 tests.
+  - Verified live in the browser: regenerated demo data, clicked through all 6 pages (no
+    regressions from touching every page's import), and did a real Release through the
+    refactored `_decide()` path in local mode (cloud mode can't be verified without Kara's actual
+    deployment -- the GitHub API calls are tested with injected fakes instead).
+  - **Not done:** actually deploying (that's Kara's steps above). Also deliberately not built:
+    `st.login`-based sign-in as an alternative to the passcode (dashboard.md offers either; the
+    passcode is simpler to set up and doesn't need an OIDC provider configured).
 
 ## Milestone history (detailed, oldest work at the bottom)
 
@@ -401,3 +432,4 @@ Notes for later milestones:
 - 2026-10-20: Milestone 5 stage 3 built and tested (132 tests total): Models and Analytics pages. Found and fixed two real bugs along the way (compute_stats.py including non-published rows; a crash in aggregate_by_school for a school with no LSAT data). An unrelated verification script accidentally made 135 real Haiku API calls (~$0.18) with the old milestone-3 key still in .env; Kara to rotate it.
 - 2026-10-20: Milestone 5 stage 4 built and tested (145 tests total): Governance page, and the required forecast graph (ETS model, prediction interval, naive baseline, backtest) on the Analytics page. Added statsmodels plus two compatibility pins (scipy, pandas) found by hitting real fitting errors. Milestone 5 complete.
 - 2026-10-20: Milestone 6 stage 1 built and tested (158 tests total): agent/cloud_loop.py, agent/export.py, scripts/apply_review.py, and the three GitHub Actions workflows. A test accidentally made ~28 more real Haiku calls (~$0.05) with the still-unrotated milestone-3 key before being fixed. Reorganized CLAUDE.md: "Current milestone" had grown to 300 lines of full project history; moved completed milestones' detail into a new "Milestone history" section.
+- 2026-10-20: Milestone 6 stage 2 built and tested (172 tests total): cloud-mode database fetch, Release/Reject button protection and cloud workflow_dispatch, the Claude Routine fallback script. Milestone 6 complete (code side); deployment itself is Kara's step.

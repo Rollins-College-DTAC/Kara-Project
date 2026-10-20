@@ -16,17 +16,39 @@ import streamlit as st
 
 from agent.release import reject_import, release_import
 from dashboard.db import (decision_for, latest_run, model_usage_for, open_trigger_holds,
-                          read_only_connection, run_log_for, sql_log_for, sqlite_path, writable_connection)
+                          read_only_connection, run_log_for, sql_log_for, writable_connection)
 from dashboard.flow import build_dot
+from dashboard.remote import trigger_review_workflow
+from dashboard.resolve import cloud_review_secrets, resolve_db_path, reviewer_passcode
 
 st.set_page_config(page_title="Law School Outcomes Agent — Live Run", layout="wide")
 st.title("Live Run")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 
-PATH = sqlite_path()
+PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()
+
+
+def _decide(h: dict, decision: str, reviewer: str, cloud_review: dict | None) -> None:
+    """Locally: writes the decision straight to SQLite (agent/release.py). In the cloud
+    (cloud_review set): starts review.yml instead -- the dashboard never writes the database
+    file directly there (references/dashboard.md)."""
+    if cloud_review:
+        trigger_review_workflow(cloud_review["owner"], cloud_review["repo"], cloud_review["token"],
+                                h["incident_id"], decision, reviewer)
+        st.success(f"Requested: the review workflow will {decision} {h['file_name']} shortly.")
+    else:
+        wconn = writable_connection(PATH)
+        apply_decision = release_import if decision == "release" else reject_import
+        n = apply_decision(wconn, h["file_name"], reviewer)
+        wconn.close()
+        if decision == "release":
+            st.success(f"Released: {n} rows published.")
+        else:
+            st.warning(f"Rejected: {n} rows excluded from the gold view.")
+    st.rerun()
 
 
 @st.fragment(run_every=5)
@@ -37,23 +59,29 @@ def alert_banner():
     if not held:
         return
     st.warning(f"{len(held)} import(s) held by the anomaly trigger, waiting for release.")
+
+    # Protect the buttons (references/dashboard.md): a public cloud app means anyone can open
+    # it, so everyone can see what's held, but only a reviewer who knows the passcode can decide.
+    passcode = reviewer_passcode()
+    unlocked = True
+    if passcode:
+        entered = st.text_input("Reviewer passcode", type="password", key="reviewer_passcode_input")
+        unlocked = entered == passcode
+        if not unlocked:
+            st.caption("Enter the reviewer passcode to release or reject a held import.")
+
+    cloud_review = cloud_review_secrets()
     for h in held:
         with st.expander(f"⚠️ {h['file_name']} — {h['n_held']} records held"):
             st.write(h["detail"])
+            if not unlocked:
+                continue
             name = st.text_input("Your initials (required to decide)", key=f"name-{h['incident_id']}")
             c1, c2 = st.columns(2)
             if c1.button("Release", key=f"release-{h['incident_id']}", disabled=not name.strip()):
-                wconn = writable_connection(PATH)
-                n = release_import(wconn, h["file_name"], name.strip())
-                wconn.close()
-                st.success(f"Released: {n} rows published.")
-                st.rerun()
+                _decide(h, "release", name.strip(), cloud_review)
             if c2.button("Reject", key=f"reject-{h['incident_id']}", disabled=not name.strip()):
-                wconn = writable_connection(PATH)
-                n = reject_import(wconn, h["file_name"], name.strip())
-                wconn.close()
-                st.warning(f"Rejected: {n} rows excluded from the gold view.")
-                st.rerun()
+                _decide(h, "reject", name.strip(), cloud_review)
 
 
 alert_banner()

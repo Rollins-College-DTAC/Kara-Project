@@ -12,14 +12,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import streamlit as st
 
 from dashboard.db import (distinct_grad_years, distinct_school_codes, distinct_statuses,
-                          imports_per_minute, read_only_connection, silver_records, sqlite_path)
+                          imports_per_minute, read_only_connection, silver_records)
 from dashboard.quality import flag_counts, status_breakdown
+from dashboard.resolve import resolve_db_path
 
 st.set_page_config(page_title="Law School Outcomes Agent — Data", layout="wide")
 st.title("Data")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 
-PATH = sqlite_path()
+PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()

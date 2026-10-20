@@ -1,0 +1,41 @@
+# The Claude Routine fallback (references/cloud.md section 8): if Routines aren't available
+# on the class plan, this scheduled job does the same thing -- reads exports/daily_summary.json
+# from the data branch and writes reports/<date>.md.
+name: daily-report
+
+on:
+  schedule:
+    - cron: "0 13 * * *"   # once a day; adjust the hour to when the demo data is freshest
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out the data branch into state/
+        run: |
+          git fetch origin data:data
+          git worktree add state data
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Write today's report
+        run: uv run python scripts/daily_report.py --state state/ --out reports/
+
+      - name: Commit the report
+        run: |
+          git config --global user.name "daily-report-bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "daily report $(date -u +%F)"
+          git push origin HEAD:main
