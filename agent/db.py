@@ -85,6 +85,7 @@ SCHEMA = [
         lsat_25 INTEGER, lsat_50 INTEGER, lsat_75 INTEGER,
         gpa_25 REAL, gpa_50 REAL, gpa_75 REAL,
         scholarship_share REAL,          -- fraction 0-1
+        cost_of_attendance REAL,         -- invented sticker-price annual cost, USD
         emp_bar_required INTEGER, emp_jd_advantage INTEGER, emp_other INTEGER, emp_unemployed INTEGER,
         emp_rate REAL,                   -- emp_bar_required / grads: the forecast measure
         bar_pass_rate REAL,              -- fraction 0-1

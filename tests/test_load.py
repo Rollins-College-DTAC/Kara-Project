@@ -8,7 +8,8 @@ import random
 
 import pytest
 
-from agent.clean import canonical_code, canonical_schools, clean_record, parse_date, parse_fraction, parse_int
+from agent.clean import (canonical_code, canonical_schools, clean_record, parse_date, parse_dollars,
+                         parse_fraction, parse_int)
 from agent.db import connect
 from agent.load import load_records
 from agent.sql import RunContext, new_run_id
@@ -48,6 +49,12 @@ def test_parse_date_handles_all_four_generator_formats():
     assert parse_date("garbage") is None
 
 
+def test_parse_dollars_handles_plain_numbers_and_dollar_strings():
+    assert parse_dollars(45000) == 45000.0
+    assert parse_dollars("$45,000") == 45000.0
+    assert parse_dollars("n/a") is None
+
+
 def test_canonical_code_undoes_code_variant_mangling():
     known = set(canonical_schools())
     assert canonical_code("LS-07") in known
@@ -75,6 +82,7 @@ def test_clean_record_on_an_ordinary_record_has_no_flags(cfg):
     assert c["consistency_ok"] is True and c["consistency_flags"] == []
     assert c["school_code"] is not None and c["school_name"] == school["name"]
     assert c["emp_rate"] is not None and 0 <= c["emp_rate"] <= 1
+    assert c["cost_of_attendance"] is not None and 18000 <= c["cost_of_attendance"] <= 72000
 
 
 @pytest.mark.parametrize("kind", ["counts_exceed_class", "percentiles_out_of_order", "categories_dont_sum"])

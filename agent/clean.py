@@ -81,6 +81,17 @@ def parse_float(value) -> float | None:
         return None
 
 
+def parse_dollars(value) -> float | None:
+    """A dollar figure written as a plain number (45000) or '$45,000'."""
+    if is_missing(value):
+        return None
+    text = str(value).strip().lstrip("$").replace(",", "")
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
 def parse_date(value) -> str | None:
     """Try every format the generator can write; return ISO 'YYYY-MM-DD' or None."""
     if is_missing(value):
@@ -142,6 +153,7 @@ def clean_record(raw: dict) -> dict:
         "lsat_25": lsat["lsat_25"], "lsat_50": lsat["lsat_50"], "lsat_75": lsat["lsat_75"],
         "gpa_25": gpa["gpa_25"], "gpa_50": gpa["gpa_50"], "gpa_75": gpa["gpa_75"],
         "scholarship_share": parse_fraction(raw.get("scholarship_share")),
+        "cost_of_attendance": parse_dollars(raw.get("cost_of_attendance")),
         "emp_bar_required": emp_counts["emp_bar_required"], "emp_jd_advantage": emp_counts["emp_jd_advantage"],
         "emp_other": emp_counts["emp_other"], "emp_unemployed": emp_counts["emp_unemployed"],
         "emp_rate": emp_rate, "bar_pass_rate": parse_fraction(raw.get("bar_pass_rate")),

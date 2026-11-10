@@ -42,6 +42,16 @@ def test_formats_alternate_and_record_counts_are_in_range(cfg, tmp_path):
     assert all(cfg["records_min"] <= int(r["n_records"]) <= cfg["records_max"] for r in imports)
 
 
+def test_public_schools_trend_cheaper_than_private(cfg):
+    schools = g.load_schools()
+    public = [s for s in schools if s["type"] == "public"]
+    private = [s for s in schools if s["type"] == "private"]
+    assert public and private
+    avg_public = sum(g.school_profile(s, cfg["seed"])["cost_of_attendance"] for s in public) / len(public)
+    avg_private = sum(g.school_profile(s, cfg["seed"])["cost_of_attendance"] for s in private) / len(private)
+    assert avg_public < avg_private
+
+
 def test_files_are_readable_and_have_all_fields(cfg, tmp_path):
     files, _ = run_fast(cfg, tmp_path, minutes=4, renamed_copy_rate=0)
     for f in files:
