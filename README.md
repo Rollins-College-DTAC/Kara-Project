@@ -55,7 +55,11 @@ not the learned-gate architecture inside some large models. See
 
 ![Analytics page: correlation scatter and forecast chart](docs/images/analytics_forecast.jpg)
 
-All four are from a real local demo run (90 simulated imports, model calls disabled to avoid
+**Compare Schools: outcomes, cost and (sample) application status side by side:**
+
+![Compare Schools page](docs/images/compare_schools.jpg)
+
+All five are from a real local demo run (90 simulated imports, model calls disabled to avoid
 API cost) — not mockups.
 
 ## Running it yourself

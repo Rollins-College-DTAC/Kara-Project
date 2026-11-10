@@ -14,6 +14,10 @@ import statistics
 from dataclasses import dataclass
 
 
+EMP_CATEGORIES = {"bar_required": "emp_bar_required", "jd_advantage": "emp_jd_advantage",
+                  "other": "emp_other", "unemployed": "emp_unemployed"}
+
+
 @dataclass
 class SchoolProfile:
     code: str
@@ -27,6 +31,7 @@ class SchoolProfile:
     cost_of_attendance: float | None
     bar_pass_rate: float | None
     emp_rate: float | None
+    emp_breakdown: dict | None = None  # share of grads in each employment category (sums to ~1)
 
     @property
     def est_net_cost(self) -> float | None:
@@ -62,6 +67,10 @@ def build_school_profiles(rows: list[dict]) -> dict[str, SchoolProfile]:
         grads_total = sum(g["grads"] for g in group if g.get("grads"))
         bar_total = sum(g["emp_bar_required"] for g in group if g.get("emp_bar_required") is not None)
         emp_rate = round(bar_total / grads_total, 4) if grads_total else None
+        breakdown = None
+        if grads_total:
+            breakdown = {key: round(sum(g.get(col) or 0 for g in group) / grads_total, 4)
+                         for key, col in EMP_CATEGORIES.items()}
         profiles[code] = SchoolProfile(
             code=code, name=next((g["school_name"] for g in group if g.get("school_name")), None),
             n=len(group),
@@ -72,6 +81,30 @@ def build_school_profiles(rows: list[dict]) -> dict[str, SchoolProfile]:
             scholarship_share=_mean([g.get("scholarship_share") for g in group]),
             cost_of_attendance=_mean([g.get("cost_of_attendance") for g in group]),
             bar_pass_rate=_mean([g.get("bar_pass_rate") for g in group]),
-            emp_rate=emp_rate,
+            emp_rate=emp_rate, emp_breakdown=breakdown,
         )
     return profiles
+
+
+def rank_by_lsat(profiles: dict[str, SchoolProfile]) -> dict[str, int]:
+    """A SAMPLE rank (1 = highest median LSAT, ties broken by employment rate). It is not a real
+    publication's ranking -- these schools are fictional."""
+    order = sorted(profiles, key=lambda c: (-(profiles[c].lsat_50 or 0), -(profiles[c].emp_rate or 0), c))
+    return {code: i + 1 for i, code in enumerate(order)}
+
+
+def admission_odds(lsat: float, gpa: float | None, school_lsat: float | None,
+                   school_gpa: float | None) -> str | None:
+    """Illustrative Safe / Target / Reach label comparing an applicant to a school's medians.
+    Not a real admissions model: it only measures distance from the medians."""
+    if school_lsat is None:
+        return None
+    parts = [(lsat - school_lsat) / 3.0]
+    if gpa is not None and school_gpa is not None:
+        parts.append((gpa - school_gpa) / 0.15)
+    score = sum(parts) / len(parts)
+    if score >= 0.75:
+        return "Safe"
+    if score >= -0.5:
+        return "Target"
+    return "Reach"

@@ -156,6 +156,26 @@ no instructor approval to reverse it).
   `tests/test_load.py` and `tests/test_generator.py`. Full suite: 187 tests. Verified live in
   the browser against fresh demo data.
 
+- **Redesign (2026-11-10, same day):** Compare Schools rebuilt as a decision view -- overview
+  cards (schools tracked, average net cost after sample offers, average median LSAT, next
+  deadline), a card per school (Playfair Display names, Inter figures with tabular numerals, a
+  status pill and a Reach/Target/Safe pill, "big three" metrics, a stacked employment-by-type
+  bar), the employment-vs-net-cost scatter, and a deadline timeline colored by urgency.
+  `.streamlit/config.toml` sets a warm light theme (navy accent) for every page.
+  - **Sample data, clearly labeled:** `dashboard/applications.py` generates deterministic invented
+    application status, deadlines (application, FAFSA, seat deposit, relative to today) and
+    scholarship offers per school code. It is generated on the fly and never enters the pipeline.
+  - **Deliberate honesty calls:** the "US News rank" became "Rank (sample)" (by median LSAT) since
+    these schools are fictional and a real publication's rank would be misattributed; employment
+    types use the four categories the pipeline really records (bar-passage-required, JD-advantage,
+    other, unemployed), not an invented BigLaw/clerkship split. Reach/Target/Safe is distance from
+    medians, not an admissions model. Debt-to-income isn't shown: there's no income data.
+  - New pure modules `dashboard/ui.py` (HTML builders, escaped, newline-free so Streamlit markdown
+    can't turn them into code blocks) and `dashboard/applications.py`; `dashboard/compare.py`
+    gained breakdown, rank and odds helpers. 21 new tests; full suite 208.
+  - Fonts load from Google Fonts at runtime; Streamlit's own heading CSS needed `!important` to
+    be overridden.
+
 ## Milestone history (detailed, oldest work at the bottom)
 
 ### Milestone 6 (cloud: GitHub Actions, data branch, Streamlit Cloud)
@@ -522,3 +542,4 @@ Notes for later milestones:
 - 2026-10-20: Milestone 6 stage 2 built and tested (172 tests total): cloud-mode database fetch, Release/Reject button protection and cloud workflow_dispatch, the Claude Routine fallback script. Milestone 6 complete (code side); deployment itself is Kara's step.
 - 2026-10-20: Milestone 7 stage 1 built and tested (177 tests total): governance doc templates, scripts/injection_test.py, LICENSE, README.md with real screenshots and an honestly-incomplete BINGO card (10/16 required, exits 1 on purpose), the Claude Motion prompt pre-filled. Remaining work (governance doc content, Jev wiring, real deployment, the Motion video) is Kara's or blocked on external factors.
 - 2026-11-10: Pushed the repo to github.com/Rollins-College-DTAC/Kara-Project and connected Streamlit Community Cloud. Two GitHub tokens and Kara's GitHub password briefly got exposed while setting up git auth (typed into the wrong prompt); both tokens revoked, password changed, switched to `gh auth login`'s browser device flow for the rest. Paused before running the `pipeline` workflow to avoid API cost -- "No data yet" on the live app is expected until that runs. Considered and set aside replacing simulated data with real ABA 509 data (no instructor approval, contradicts the project's own rule). Built a Compare Schools page instead (187 tests total): a new simulated cost_of_attendance field, per-school profile aggregation, and a clearly-labeled illustrative "value index."
+- 2026-11-10: Redesigned Compare Schools (navy/cream, serif + tabular sans, overview cards, deadline timeline) with clearly-labeled sample application data (208 tests). Committed locally, not pushed.

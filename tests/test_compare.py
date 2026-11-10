@@ -65,3 +65,33 @@ def test_two_schools_compare_sensibly_cheaper_and_better_outcomes_scores_higher(
                        scholarship_share=0.0)
     profiles = build_school_profiles([cheap_better, pricey_worse])
     assert profiles["LS-01"].value_index > profiles["LS-02"].value_index
+
+
+# ---------------------------------------------------------------- rank, odds, employment breakdown
+
+from dashboard.compare import admission_odds, rank_by_lsat  # noqa: E402
+
+
+def test_emp_breakdown_shares_are_computed_from_summed_counts_and_sum_to_one():
+    rows = [dict(rec(grads=100, emp_bar_required=60), emp_jd_advantage=20, emp_other=15, emp_unemployed=5),
+            dict(rec(grads=100, emp_bar_required=80), emp_jd_advantage=10, emp_other=5, emp_unemployed=5)]
+    b = build_school_profiles(rows)["LS-01"].emp_breakdown
+    assert b == {"bar_required": 0.7, "jd_advantage": 0.15, "other": 0.1, "unemployed": 0.05}
+    assert sum(b.values()) == pytest.approx(1.0)
+
+
+def test_rank_by_lsat_orders_by_median_lsat_then_employment():
+    rows = [rec("LS-01", lsat_50=165), rec("LS-02", lsat_50=170), rec("LS-03", lsat_50=165, emp_bar_required=90)]
+    ranks = rank_by_lsat(build_school_profiles(rows))
+    assert ranks == {"LS-02": 1, "LS-03": 2, "LS-01": 3}
+
+
+def test_admission_odds_reach_target_safe():
+    assert admission_odds(175, 3.95, 160, 3.5) == "Safe"
+    assert admission_odds(160, 3.5, 160, 3.5) == "Target"
+    assert admission_odds(150, 3.0, 165, 3.7) == "Reach"
+
+
+def test_admission_odds_without_gpa_uses_lsat_alone_and_none_without_school_data():
+    assert admission_odds(170, None, 160, None) == "Safe"
+    assert admission_odds(170, 3.9, None, None) is None
