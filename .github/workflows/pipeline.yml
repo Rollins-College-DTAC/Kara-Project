@@ -10,6 +10,10 @@ on:
         description: "How many minutes to run (one import per minute)"
         required: true
         default: "30"
+      models_enabled:
+        description: "Call Claude/Jev (costs money). Leave false to use the free rules fallback."
+        required: true
+        default: "false"
   # Optional: one short run each hour between demos, to keep the dashboard's data fresh.
   # schedule:
   #   - cron: "0 * * * *"
@@ -29,6 +33,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
       MINUTES: ${{ inputs.minutes || '1' }}
+      MODEL_CALLS_ENABLED: ${{ inputs.models_enabled || 'false' }}
     steps:
       - uses: actions/checkout@v4
 
