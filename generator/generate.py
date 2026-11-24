@@ -27,8 +27,8 @@ log = logging.getLogger("generator")
 FIELDS = [
     "school_name", "school_code", "grad_year", "report_date", "class_size",
     "acceptance_rate", "lsat_25", "lsat_50", "lsat_75", "gpa_25", "gpa_50", "gpa_75",
-    "scholarship_share", "grads", "emp_unit", "emp_bar_required", "emp_jd_advantage",
-    "emp_other", "emp_unemployed", "bar_pass_rate", "notes",
+    "scholarship_share", "cost_of_attendance", "grads", "emp_unit", "emp_bar_required",
+    "emp_jd_advantage", "emp_other", "emp_unemployed", "bar_pass_rate", "notes",
 ]
 
 LOG_COLUMNS = [
@@ -113,6 +113,11 @@ def school_profile(school: dict, seed: int) -> dict:
         "acceptance_rate": clamp(0.85 - (lsat50 - 150) * 0.03 + r.gauss(0, 0.02), 0.10, 0.90),
         "scholarship_share": r.uniform(0.2, 0.7),
         "base_rate": clamp(base_rate, 0.35, 0.90),
+        # Sticker-price annual cost of attendance: public schools start cheaper; more selective
+        # schools (higher lsat50) trend pricier. A rough, invented correlation, not a real model.
+        "cost_of_attendance": clamp(
+            (32000 if school["type"] == "public" else 52000) + (lsat50 - 150) * 250 + r.gauss(0, 3000),
+            18000, 72000),
     }
 
 
@@ -142,6 +147,11 @@ def maybe_missing(value, r: random.Random, p: float = 0.04):
 def as_percent(frac: float, r: random.Random):
     """Same fraction written two ways: 0.312 or '31.2%'."""
     return f"{frac * 100:.1f}%" if r.random() < 0.5 else round(frac, 3)
+
+
+def as_dollars(amount: float, r: random.Random):
+    """Same dollar figure written two ways: 45000 or '$45,000'."""
+    return f"${amount:,.0f}" if r.random() < 0.5 else round(amount)
 
 
 # Harder notes for the gold set: paraphrases, numbers in words, two topics, vague amounts,
@@ -241,6 +251,8 @@ def build_record(school: dict, profile: dict, shift: float, r: random.Random,
         "gpa_50": maybe_missing(profile["gpa_50"], r),
         "gpa_75": maybe_missing(profile["gpa_75"], r),
         "scholarship_share": maybe_missing(as_percent(profile["scholarship_share"], r), r),
+        "cost_of_attendance": maybe_missing(
+            as_dollars(clamp(profile["cost_of_attendance"] + r.gauss(0, 500), 18000, 72000), r), r),
         "grads": str(grads) if big_numbers_as_text else grads,
         "emp_unit": unit,
         # Employment fields are never missing, so the sum check stays meaningful.

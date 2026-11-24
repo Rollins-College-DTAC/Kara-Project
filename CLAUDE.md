@@ -71,10 +71,22 @@ History: the project first targeted a contract-template matcher for a business a
 **Milestone 5 is complete** (Live Run, Data, Pipeline History, Models, Analytics, Governance
 pages; the required forecast graph).
 
-**Milestone 6 is complete** (all code; deployment itself is Kara's step). Needs a GitHub repo
-Kara owns and pushes to, real secrets, and a Streamlit Community Cloud account -- none of that
-is something Claude did or should do unilaterally. Full checklist of what's left for Kara is in
-"Milestone history" below (Milestone 6 section).
+**Milestone 6 is complete** (all code). **Deployment in progress (2026-11-10):** the repo is
+pushed to `github.com/Rollins-College-DTAC/Kara-Project` and connected to Streamlit Community
+Cloud. Repo secret `ANTHROPIC_API_KEY` added. Streamlit secrets `GH_DATA_TOKEN`/`GH_REPO_OWNER`/
+`GH_REPO_NAME` added, so cloud-mode database fetch is active -- but the `pipeline` workflow
+hasn't been run yet (Kara paused to avoid the API cost), so there's no `data` branch yet and the
+app correctly shows "No data yet." Remaining: run `pipeline` (optionally with the repo secret
+`MODEL_CALLS_ENABLED=false` for a free first test via the rules fallback), then add
+`GH_REVIEW_TOKEN` and a `REVIEWER_PASSCODE` Streamlit secret. Full checklist in "Milestone
+history" below (Milestone 6 section).
+- **Safety note from the deployment session:** two GitHub tokens and (briefly) Kara's actual
+  GitHub password got typed into the wrong prompt and ended up visible in chat/terminal
+  scrollback while setting up `git push` auth. Both tokens were revoked and the password was
+  changed. Switched to `gh auth login`'s browser-based device flow for all later GitHub
+  authentication specifically because it never requires typing a secret anywhere visible.
+
+**Milestone 7, stage 1 of 2 is complete (everything buildable without a live deployment).**
 
 **Milestone 7, stage 1 of 2 is complete (everything buildable without a live deployment).**
 - **Stage 1 delivered (2026-10-20):**
@@ -116,6 +128,53 @@ is something Claude did or should do unilaterally. Full checklist of what's left
   live deployment; make the Claude Motion video in a claude.ai chat; then re-run
   `scripts/check_bingo.py` -- it should pass once those are done, since everything buildable
   without them is already in place.
+
+### Post-milestone-7: Compare Schools page (not part of the original 7 milestones)
+
+Kara asked (2026-11-10) to make the dashboard more directly useful for "comparing employment
+outcomes and the value of the education obtained by school" -- which matches the project's own
+case study exactly (a law school applicant comparing schools), so this was built using the
+existing simulated data, not real school data (that idea came up and was explicitly set aside:
+real institutional data would contradict the project's simulated-data-only rule, and there was
+no instructor approval to reverse it).
+
+- **New field:** `cost_of_attendance` (an invented sticker-price annual cost, correlated with
+  school type -- public cheaper, private pricier -- and mildly with selectivity), added to the
+  generator, `agent/clean.py` (`parse_dollars`, handling `"$45,000"` and plain numbers), and a
+  new `silver_records` column. This is the one genuinely new simulated data point; there was no
+  cost/tuition figure anywhere in the project before this.
+- **`dashboard/compare.py`:** per-school profile aggregation (averages across every published
+  import for that school; employment rate from summed grads/bar-required, not an average of
+  per-import rates, so a small import doesn't distort it) plus a simple, clearly-labeled "value
+  index": employment rate per $10,000 of *estimated* net cost (`cost_of_attendance × (1 -
+  scholarship_share)`). Documented everywhere it appears as illustrative only -- there's no real
+  salary, debt or ROI data behind it, and `scholarship_share` is the *share of the class* with
+  merit aid, not each student's actual discount.
+- **`dashboard/pages/6_Compare_Schools.py`:** pick schools, see them side by side, plus an
+  employment-rate-vs-cost scatter and a "how this was calculated" expander.
+- 9 new tests (`tests/test_compare.py`), plus coverage for the new field in
+  `tests/test_load.py` and `tests/test_generator.py`. Full suite: 187 tests. Verified live in
+  the browser against fresh demo data.
+
+- **Redesign (2026-11-10, same day):** Compare Schools rebuilt as a decision view -- overview
+  cards (schools tracked, average net cost after sample offers, average median LSAT, next
+  deadline), a card per school (Playfair Display names, Inter figures with tabular numerals, a
+  status pill and a Reach/Target/Safe pill, "big three" metrics, a stacked employment-by-type
+  bar), the employment-vs-net-cost scatter, and a deadline timeline colored by urgency.
+  `.streamlit/config.toml` sets a warm light theme (navy accent) for every page.
+  - **Sample data, clearly labeled:** `dashboard/applications.py` generates deterministic invented
+    application status, deadlines (application, FAFSA, seat deposit, relative to today) and
+    scholarship offers per school code. It is generated on the fly and never enters the pipeline.
+  - **Deliberate honesty calls:** the "US News rank" became "Rank (sample)" (by median LSAT) since
+    these schools are fictional and a real publication's rank would be misattributed; employment
+    types use the four categories the pipeline really records (bar-passage-required, JD-advantage,
+    other, unemployed), not an invented BigLaw/clerkship split. Reach/Target/Safe is distance from
+    medians, not an admissions model. Debt-to-income isn't shown: there's no income data.
+  - New pure modules `dashboard/ui.py` (HTML builders, escaped, newline-free so Streamlit markdown
+    can't turn them into code blocks) and `dashboard/applications.py`; `dashboard/compare.py`
+    gained breakdown, rank and odds helpers. 21 new tests; full suite 208.
+  - Fonts load from Google Fonts at runtime; Streamlit's own heading CSS needed `!important` to
+    be overridden.
 
 ## Milestone history (detailed, oldest work at the bottom)
 
@@ -482,3 +541,5 @@ Notes for later milestones:
 - 2026-10-20: Milestone 6 stage 1 built and tested (158 tests total): agent/cloud_loop.py, agent/export.py, scripts/apply_review.py, and the three GitHub Actions workflows. A test accidentally made ~28 more real Haiku calls (~$0.05) with the still-unrotated milestone-3 key before being fixed. Reorganized CLAUDE.md: "Current milestone" had grown to 300 lines of full project history; moved completed milestones' detail into a new "Milestone history" section.
 - 2026-10-20: Milestone 6 stage 2 built and tested (172 tests total): cloud-mode database fetch, Release/Reject button protection and cloud workflow_dispatch, the Claude Routine fallback script. Milestone 6 complete (code side); deployment itself is Kara's step.
 - 2026-10-20: Milestone 7 stage 1 built and tested (177 tests total): governance doc templates, scripts/injection_test.py, LICENSE, README.md with real screenshots and an honestly-incomplete BINGO card (10/16 required, exits 1 on purpose), the Claude Motion prompt pre-filled. Remaining work (governance doc content, Jev wiring, real deployment, the Motion video) is Kara's or blocked on external factors.
+- 2026-11-10: Pushed the repo to github.com/Rollins-College-DTAC/Kara-Project and connected Streamlit Community Cloud. Two GitHub tokens and Kara's GitHub password briefly got exposed while setting up git auth (typed into the wrong prompt); both tokens revoked, password changed, switched to `gh auth login`'s browser device flow for the rest. Paused before running the `pipeline` workflow to avoid API cost -- "No data yet" on the live app is expected until that runs. Considered and set aside replacing simulated data with real ABA 509 data (no instructor approval, contradicts the project's own rule). Built a Compare Schools page instead (187 tests total): a new simulated cost_of_attendance field, per-school profile aggregation, and a clearly-labeled illustrative "value index."
+- 2026-11-10: Redesigned Compare Schools (navy/cream, serif + tabular sans, overview cards, deadline timeline) with clearly-labeled sample application data (208 tests). Committed locally, not pushed.
