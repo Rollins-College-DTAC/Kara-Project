@@ -226,3 +226,25 @@ def test_every_downloaded_employment_year_loads_and_sums_exactly():
     for f in files:
         year, records = load_employment_file(f)  # raises if any school's categories don't sum
         assert records and all(r["grads"] > 0 for r in records), f.name
+
+
+def test_renamed_schools_keep_one_key_with_continuous_class_sizes():
+    """Every old name maps to a school that exists in the newest list, and the class size does not jump
+    between the last old-name year (2023) and the first new-name year (2024), so no two schools merged."""
+    from agent.aba import NAME_ALIASES, load_employment_file, school_key
+    from agent.config import ROOT
+    d = ROOT / "data_real"
+    if not (d / "Employment_Summary_2023.xlsx").exists():
+        return
+    _, old = load_employment_file(d / "Employment_Summary_2023.xlsx")
+    _, new = load_employment_file(d / "Employment_Summary_2024.xlsx")
+    old_by = {r["school_name"]: r for r in old}
+    new_by = {r["school_key"]: r for r in new}
+    for old_name, new_name in NAME_ALIASES.items():
+        assert school_key(old_name) == school_key(new_name)
+        assert school_key(new_name) in new_by, new_name
+        if old_name in old_by:
+            ratio = new_by[school_key(new_name)]["grads"] / max(old_by[old_name]["grads"], 1)
+            assert 0.5 < ratio < 2, (old_name, ratio)
+    keys = [r["school_key"] for r in old]
+    assert len(keys) == len(set(keys)), "two old schools now share a key"

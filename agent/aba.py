@@ -68,6 +68,52 @@ def slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+# The ABA renamed about thirty schools between the 2023 and 2024 reports (and spells names in capitals
+# before 2024). Each old name below is the same institution as the current one on the right; it was
+# checked by hand against the 2024 list, and tests/test_aba.py checks class sizes stay continuous.
+# Schools that closed or merged (Arizona Summit, Whittier, the Savannah campus, and Penn State Law
+# and Dickinson, which became one school in 2024 with three times Dickinson's class) are deliberately
+# not mapped: a trend across a merger would be misleading.
+NAME_ALIASES = {
+    "ARKANSAS, FAYETTEVILLE, UNIVERSITY OF": "Arkansas, University of",
+    "ARKANSAS, LITTLE ROCK, UNIVERSITY OF": "Arkansas at Little Rock, University of",
+    "CAPITAL UNIVERSITY": "Capital University Law School",
+    "CARDOZO SCHOOL OF LAW": "Cardozo, Yeshiva University",
+    "CHICAGO-KENT COLLEGE OF LAW-IIT": "Chicago-Kent, Illinois Institute of Technology",
+    "CITY UNIVERSITY OF NEW YORK": "City University of New York, University of",
+    "DISTRICT OF COLUMBIA": "District of Columbia, University of",
+    "LEWIS AND CLARK COLLEGE": "Lewis & Clark Law School",
+    "LINCOLN MEMORIAL": "Lincoln Memorial University",
+    "MCGEORGE SCHOOL OF LAW": "Pacific, University of the",
+    "MISSISSIPPI COLLEGE": "Mississippi Christian University",
+    "MITCHELL|HAMLINE": "Mitchell/Hamline School of Law",
+    "PONTIFICAL CATHOLIC UNIVERSITY OF P.R.": "Pontifical Catholic University of Puerto Rico",
+    "SOUTHERN ILLINOIS UNIVERSITY-CARBONDALE": "Southern Illinois University",
+    "ST. THOMAS UNIVERSITY (FLORIDA)": "St. Thomas University (Miami)",
+    "ST. THOMAS, UNIVERSITY OF (MINNESOTA)": "St. Thomas, (Minneapolis) University of",
+    "TEXAS AT AUSTIN, UNIVERSITY OF": "Texas, University of",
+    "UNIVERSITY OF BUFFALO-SUNY": "Buffalo, University at",
+    "UNIVERSITY OF CALIFORNIA COLLEGE OF THE LAW, SAN FRANCISCO": "California-San Francisco, University of",
+    "UNIVERSITY OF ILLINOIS CHICAGO SCHOOL OF LAW": "Illinois-Chicago, University of",
+    "UNIVERSITY OF MASSACHUSETTS DARTMOUTH": "Massachusetts/Dartmouth, University of",
+    "UNIVERSITY OF NEVADA - LAS VEGAS": "Nevada-Las Vegas, University of",
+    "UNT DALLAS COLLEGE OF LAW": "North Texas at Dallas, University of",
+    "WASHINGTON UNIVERSITY": "Washington University (St. Louis)",
+    "WESTERN MICHIGAN UNIVERSITY": "Cooley Law School",  # WMU-Cooley, 2016-2021; class 411 then 277
+    "COOLEY LAW SCHOOL": "Cooley Law School",
+    "WESTERN STATE COLLEGE OF LAW": "Western State, Westcliff University",
+    "WIDENER UNIVERSITY-DELAWARE": "Widener University Delaware Law School",
+    "WIDENER-COMMONWEALTH": "Widener University Commonwealth Law School",
+    "WILLIAM AND MARY LAW SCHOOL": "William & Mary",
+}
+
+
+def school_key(name: str) -> str:
+    """One stable key per institution across report years: current name, no leading "The"."""
+    name = NAME_ALIASES.get(name.strip(), name.strip())
+    return re.sub(r"(^|-)the(-|$)", "-", slug(name)).strip("-")
+
+
 def sheet_year(sheet_name: str) -> int:
     m = re.match(r"(\d{4})_", sheet_name)
     if not m:
@@ -150,7 +196,7 @@ def employment_record(row: dict, year: int, layout: dict | None = None) -> dict:
     other = all_buckets - bar - jd - unemployed  # everything else: part-time/short-term, other job types, grad study, unknown
     name = str(row["SchoolName"]).strip()
     return {
-        "source": "aba", "school_name": name, "school_key": slug(name), "grad_year": year,
+        "source": "aba", "school_name": name, "school_key": school_key(name), "grad_year": year,
         "grads": grads, "emp_unit": "count",
         "emp_bar_required": bar, "emp_jd_advantage": jd, "emp_other": other, "emp_unemployed": unemployed,
         "emp_biglaw": _n(row, L["biglaw"]), "emp_fed_clerkship": _n(row, L["fed_clerkship"]),
@@ -286,7 +332,7 @@ def build_school_profiles(data_dir: Path) -> list[dict]:
         living = to_num(t.get("Living_Off_Campus"))
         two_key = next((k for k in b2 if k.endswith("Graduates") and k[:4].isdigit()), None)
         p = {
-            "school_key": slug(name), "school_name": name, "school_type": b.get("SchoolType"),
+            "school_key": school_key(name), "school_name": name, "school_type": b.get("SchoolType"),
             "basics_edition": editions["basics"], "admissions_edition": editions["fyc"],
             "applications": to_num(f.get("Applications")), "offers": to_num(f.get("Offers")),
             "acceptance_rate": to_frac(f.get("AcceptanceRate")), "enrollees": to_num(f.get("Enrollees")),
