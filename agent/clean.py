@@ -108,7 +108,10 @@ def parse_date(value) -> str | None:
 def clean_record(raw: dict) -> dict:
     """Typed, cleaned fields plus consistency flags. Never raises: an unparseable value
     becomes None and is treated like any other missing value by the consistency checks."""
-    code = canonical_code(raw.get("school_code"))
+    real_key = raw.get("school_key")  # real-source records (ABA) carry their own stable school key
+    code = str(real_key) if real_key else canonical_code(raw.get("school_code"))
+    school_name = (str(raw.get("school_name") or "").strip() or None) if real_key else (
+        canonical_schools().get(code) if code else None)
     class_size = parse_int(raw.get("class_size"))
     grads = parse_int(raw.get("grads"))
     unit = str(raw.get("emp_unit") or "").strip().lower()
@@ -145,7 +148,8 @@ def clean_record(raw: dict) -> dict:
         emp_rate = round(emp_counts["emp_bar_required"] / grads, 4)
 
     return {
-        "school_code": code, "school_name": canonical_schools().get(code) if code else None,
+        "school_code": code, "school_name": school_name,
+        "data_source": "aba" if raw.get("source") == "aba" else "simulated",
         "school_name_raw": raw.get("school_name"),
         "grad_year": parse_int(raw.get("grad_year")), "report_date": parse_date(raw.get("report_date")),
         "class_size": class_size, "grads": grads,
@@ -157,5 +161,8 @@ def clean_record(raw: dict) -> dict:
         "emp_bar_required": emp_counts["emp_bar_required"], "emp_jd_advantage": emp_counts["emp_jd_advantage"],
         "emp_other": emp_counts["emp_other"], "emp_unemployed": emp_counts["emp_unemployed"],
         "emp_rate": emp_rate, "bar_pass_rate": parse_fraction(raw.get("bar_pass_rate")),
+        "emp_biglaw": parse_int(raw.get("emp_biglaw")), "emp_fed_clerkship": parse_int(raw.get("emp_fed_clerkship")),
+        "emp_public_interest": parse_int(raw.get("emp_public_interest")),
+        "emp_government": parse_int(raw.get("emp_government")), "emp_business": parse_int(raw.get("emp_business")),
         "consistency_ok": not flags, "consistency_flags": flags,
     }

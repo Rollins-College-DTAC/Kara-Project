@@ -87,6 +87,9 @@ SCHEMA = [
         scholarship_share REAL,          -- fraction 0-1
         cost_of_attendance REAL,         -- invented sticker-price annual cost, USD
         emp_bar_required INTEGER, emp_jd_advantage INTEGER, emp_other INTEGER, emp_unemployed INTEGER,
+        data_source TEXT DEFAULT 'simulated',   -- simulated, or aba (real ABA Standard 509 / Employment Summary data)
+        emp_biglaw INTEGER, emp_fed_clerkship INTEGER, emp_public_interest INTEGER,
+        emp_government INTEGER, emp_business INTEGER,     -- real-data employer types (ABA only)
         emp_rate REAL,                   -- emp_bar_required / grads: the forecast measure
         bar_pass_rate REAL,              -- fraction 0-1
         consistency_ok INTEGER, consistency_flags TEXT,   -- JSON list of broken rule names
@@ -114,6 +117,12 @@ SCHEMA = [
 # table, so a database created before one of these (e.g. the cloud data branch) gets it here.
 MIGRATIONS = [
     ("silver_records", "cost_of_attendance", "REAL"),
+    ("silver_records", "data_source", "TEXT DEFAULT 'simulated'"),
+    ("silver_records", "emp_biglaw", "INTEGER"),
+    ("silver_records", "emp_fed_clerkship", "INTEGER"),
+    ("silver_records", "emp_public_interest", "INTEGER"),
+    ("silver_records", "emp_government", "INTEGER"),
+    ("silver_records", "emp_business", "INTEGER"),
 ]
 
 

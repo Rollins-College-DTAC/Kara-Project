@@ -31,15 +31,18 @@ def load_records(ctx: RunContext, records: list[dict]) -> dict:
                     "school_name, school_name_raw, grad_year, report_date, class_size, grads, acceptance_rate, "
                     "lsat_25, lsat_50, lsat_75, gpa_25, gpa_50, gpa_75, scholarship_share, cost_of_attendance, "
                     "emp_bar_required, emp_jd_advantage, emp_other, emp_unemployed, emp_rate, bar_pass_rate, "
-                    "consistency_ok, consistency_flags, status, landed_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "consistency_ok, consistency_flags, status, landed_at, data_source, emp_biglaw, emp_fed_clerkship, "
+                    "emp_public_interest, emp_government, emp_business) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                    "?, ?, ?, ?, ?, ?)",
                     (ctx.file_name, i, ctx.run_id, c["school_code"], c["school_name"], c["school_name_raw"],
                      c["grad_year"], c["report_date"], c["class_size"], c["grads"], c["acceptance_rate"],
                      c["lsat_25"], c["lsat_50"], c["lsat_75"], c["gpa_25"], c["gpa_50"], c["gpa_75"],
                      c["scholarship_share"], c["cost_of_attendance"], c["emp_bar_required"],
                      c["emp_jd_advantage"], c["emp_other"], c["emp_unemployed"], c["emp_rate"],
                      c["bar_pass_rate"], int(c["consistency_ok"]),
-                     json.dumps(c["consistency_flags"]), status, now_iso()))
+                     json.dumps(c["consistency_flags"]), status, now_iso(), c["data_source"], c["emp_biglaw"],
+                     c["emp_fed_clerkship"], c["emp_public_interest"], c["emp_government"], c["emp_business"]))
         s.rows_in = len(records)
         s.rows_out = len(records) - held
         s.rows_rejected = held
