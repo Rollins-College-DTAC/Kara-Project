@@ -17,16 +17,23 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
+import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
-from agent.config import load_agent_config
+from agent.aba import build_school_profiles
+from agent.aba_load import load_profiles
+from agent.config import ROOT, load_agent_config
 from agent.db import connect
 from agent.export import write_daily_summary
 from agent.loop import scan_once
+from agent.sql import RunContext, new_run_id
 from generator import generate as g
 from scripts.compute_stats import run as run_stats
+from scripts.import_aba import convert as convert_aba
 
 log = logging.getLogger("cloud_loop")
 
@@ -69,6 +76,57 @@ def commit_and_push_data_branch(state: Path) -> bool:
     return True
 
 
+def wipe_state(state: Path) -> None:
+    """Start the data branch's contents from nothing (the git folder is left alone), so a real-data
+    run does not mix with simulated rows from an earlier run."""
+    for name in ("data", "inbox", "processed", "quarantine", "exports", "generator_log.csv"):
+        target = state / name
+        if target.is_dir():
+            shutil.rmtree(target)
+        elif target.exists():
+            target.unlink()
+
+
+def run_real(state: Path, interval_seconds: float = 60.0, push: bool = True, real_sleep=time.sleep,
+             cfg_overrides: dict | None = None, src: Path | None = None, fresh: bool = False) -> int:
+    """Real ABA data: load the school profiles once, then feed one graduating class (oldest first)
+    into the inbox per tick, running the same pipeline on each. Returns the classes processed."""
+    state = Path(state)
+    if fresh:
+        wipe_state(state)
+    cfg = _apply(_state_cfg(load_agent_config(), state), cfg_overrides)
+    src = Path(src or ROOT / "data_real")
+    with tempfile.TemporaryDirectory() as staging:  # kept out of state/, which gets committed
+        files = convert_aba(src, Path(staging))
+        cfg["inbox"].mkdir(parents=True, exist_ok=True)
+        cfg["data_dir"].mkdir(parents=True, exist_ok=True)
+        conn = connect(cfg["sqlite_path"])
+        try:
+            result = load_profiles(RunContext(conn=conn, run_id=new_run_id(), file_name="aba_school_profiles"),
+                                   build_school_profiles(src))
+        finally:
+            conn.close()
+        log.info("Loaded school profiles: %s", result)
+        for i, path in enumerate(files):
+            landed = shutil.copy(path, cfg["inbox"] / path.name)
+            # The copy is complete, so it is not "still being written": backdate it past the settle window.
+            old = time.time() - cfg.get("settle_seconds", 0) - 1
+            os.utime(landed, (old, old))
+            _finish_one_minute(cfg, state, push)
+            if i < len(files) - 1:
+                real_sleep(interval_seconds)
+    return len(files)
+
+
+def _apply(cfg: dict, overrides: dict | None) -> dict:
+    for key, value in (overrides or {}).items():
+        if isinstance(value, dict) and isinstance(cfg.get(key), dict):
+            cfg[key].update(value)
+        else:
+            cfg[key] = value
+    return cfg
+
+
 def run(minutes: int, state: Path, interval_seconds: float = 60.0, push: bool = True,
        real_sleep=time.sleep, cfg_overrides: dict | None = None) -> None:
     """cfg_overrides: shallow-merged into the loaded config (dict values merge one level deep,
@@ -105,13 +163,19 @@ def _finish_one_minute(cfg: dict, state: Path, push: bool) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--minutes", type=int, required=True)
+    p.add_argument("--minutes", type=int, default=1, help="simulated source only")
     p.add_argument("--state", type=Path, required=True)
     p.add_argument("--interval-seconds", type=float, default=60.0)
     p.add_argument("--no-push", action="store_true", help="skip committing/pushing the data branch")
+    p.add_argument("--source", choices=["simulated", "real"], default="simulated",
+                   help="simulated: the generator; real: ABA classes from data_real/, one per tick")
+    p.add_argument("--fresh", action="store_true", help="real source only: clear the state first")
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-    run(args.minutes, args.state, interval_seconds=args.interval_seconds, push=not args.no_push)
+    if args.source == "real":
+        run_real(args.state, interval_seconds=args.interval_seconds, push=not args.no_push, fresh=args.fresh)
+    else:
+        run(args.minutes, args.state, interval_seconds=args.interval_seconds, push=not args.no_push)
 
 
 if __name__ == "__main__":

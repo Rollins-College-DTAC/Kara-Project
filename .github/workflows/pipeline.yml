@@ -10,6 +10,14 @@ on:
         description: "How many minutes to run (one import per minute)"
         required: true
         default: "30"
+      source:
+        description: "simulated = invented imports from the generator; real = the ABA classes of 2016-2025, one per minute (10 minutes)"
+        required: true
+        default: "simulated"
+      fresh:
+        description: "Real source only: clear the data branch first so simulated rows do not mix in"
+        required: true
+        default: "true"
       models_enabled:
         description: "Call Claude/Jev (costs money). Leave false to use the free rules fallback."
         required: true
@@ -34,6 +42,8 @@ jobs:
       JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
       MINUTES: ${{ inputs.minutes || '1' }}
       MODEL_CALLS_ENABLED: ${{ inputs.models_enabled || 'false' }}
+      SOURCE: ${{ inputs.source || 'simulated' }}
+      FRESH: ${{ inputs.fresh || 'true' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,4 +69,10 @@ jobs:
         # cloud_loop: each minute generate an import, run the full pipeline (ETL, models,
         # stats, decide/act), export the daily summary, then amend-commit and force-push
         # state/ to the data branch.
-        run: uv run python -m agent.cloud_loop --minutes "$MINUTES" --state state/
+        run: |
+          if [ "$SOURCE" = "real" ]; then
+            FLAG=""; [ "$FRESH" = "true" ] && FLAG="--fresh"
+            uv run python -m agent.cloud_loop --source real $FLAG --state state/
+          else
+            uv run python -m agent.cloud_loop --minutes "$MINUTES" --state state/
+          fi

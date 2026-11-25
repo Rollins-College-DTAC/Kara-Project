@@ -108,3 +108,25 @@ def test_run_processes_every_minute_and_pushes_each_time(fake_origin_and_worktre
                            capture_output=True, text=True).stdout.splitlines()
     assert "exports/daily_summary.json" in files
     assert any(f.startswith("data/analytics.sqlite") or f == "data/analytics.sqlite" for f in files)
+
+
+def test_real_source_loads_every_class_and_profiles_without_model_calls(tmp_path):
+    from agent.cloud_loop import run_real
+    from agent.config import ROOT
+    if not (ROOT / "data_real" / "Employment_Summary_2025.xlsx").exists():
+        pytest.skip("data_real/ not present")
+    state = tmp_path / "state"
+    (state / "data").mkdir(parents=True)
+    (state / "data" / "stale.txt").write_text("old simulated state")
+    n = run_real(state, interval_seconds=0, push=False, real_sleep=lambda s: None, fresh=True,
+                 cfg_overrides={"models": {"enabled": False}})
+    assert n == 10
+    assert not (state / "data" / "stale.txt").exists()  # --fresh cleared the old state
+    conn = connect(state / "data" / "analytics.sqlite")
+    years = {r[0] for r in conn.execute("SELECT DISTINCT grad_year FROM silver_records WHERE data_source='aba'")}
+    profiles = conn.execute("SELECT COUNT(*) FROM school_profile").fetchone()[0]
+    sim = conn.execute("SELECT COUNT(*) FROM silver_records WHERE data_source='simulated'").fetchone()[0]
+    conn.close()
+    assert years == set(range(2016, 2026)) and profiles > 150 and sim == 0
+    assert (state / "exports" / "daily_summary.json").exists()
+    assert not list((state).glob("aba_employment_*.json"))  # staging never lands in the committed folder

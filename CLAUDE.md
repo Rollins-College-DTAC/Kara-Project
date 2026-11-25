@@ -570,5 +570,7 @@ script downloads them).
   yearly trend, employer mix, bar passage against the state, and ranks by median LSAT.
 - **Known limits:** the 2026 employment edition is not published yet, so the newest class is 2025.
   Wilmington has no employment data. Baylor's fees may be per credit rather than annual. The cloud
-  loop (`agent/cloud_loop.py`) still generates simulated imports; real data in the live app needs
-  a load path onto the `data` branch.
+  loop has a real source: run the `pipeline` workflow with `source=real` (and `fresh=true` to clear
+  simulated rows) and it loads the profiles once, then one class per minute (10 minutes), pushing
+  to the `data` branch after each. Not yet run in the cloud; the local dry run published all
+  1,978 school-years with nothing held (largest anomaly z 2.1, below the 3.0 trigger).
