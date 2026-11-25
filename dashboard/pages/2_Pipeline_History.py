@@ -16,8 +16,10 @@ from dashboard.db import (read_only_connection, recent_run_ids, run_log_for, run
                           sql_log_for)
 from dashboard.pipeline import rows_per_run, step_duration_summary
 from dashboard.resolve import resolve_db_path
+from dashboard.theme import inject
 
 st.set_page_config(page_title="Law School Outcomes Agent — Pipeline History", layout="wide")
+inject()
 st.title("Pipeline History")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 

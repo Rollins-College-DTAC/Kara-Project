@@ -15,20 +15,33 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import streamlit as st
 
 from agent.release import reject_import, release_import
-from dashboard.db import (decision_for, latest_run, model_usage_for, open_trigger_holds,
+from dashboard.db import (decision_for, latest_run, model_usage_for, open_trigger_holds, overview_counts,
                           read_only_connection, run_log_for, sql_log_for, writable_connection)
-from dashboard.flow import build_dot
+from dashboard.flow import pipeline_svg
+from dashboard.theme import inject
+from dashboard.ui import hero
 from dashboard.remote import trigger_review_workflow
 from dashboard.resolve import cloud_review_secrets, resolve_db_path, reviewer_passcode
 
 st.set_page_config(page_title="Law School Outcomes Agent — Live Run", layout="wide")
-st.title("Live Run")
-st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
+inject()
 
 PATH = resolve_db_path()
 if not PATH.exists():
     st.info("No data yet. Run the generator and the agent loop, then reload this page.")
     st.stop()
+
+_conn = read_only_connection(PATH)
+_counts = overview_counts(_conn)
+_conn.close()
+st.markdown(hero(
+    "Live Run", "A governed pipeline that lands, cleans, scores and publishes simulated school outcomes. "
+    "Simulated data only: a portfolio demonstration, not a tool for choosing a real law school.",
+    [("Imports processed", f"{_counts['files']:,}", "files landed"),
+     ("Records published", f"{_counts['published']:,}", "live in the gold view"),
+     ("Records held", f"{_counts['held']:,}", "waiting on a person"),
+     ("Last anomaly z-score", "\u2014" if _counts["last_z"] is None else f"{_counts['last_z']:+.2f}",
+      "fires beyond \u00b13")]), unsafe_allow_html=True)
 
 
 def _decide(h: dict, decision: str, reviewer: str, cloud_review: dict | None) -> None:
@@ -99,7 +112,7 @@ def flow_and_panels():
     st.subheader(f"Latest run: {run['file_name']}")
     log_rows = run_log_for(conn, run["run_id"])
     decision = decision_for(conn, run["run_id"])
-    st.graphviz_chart(build_dot(log_rows, decision))
+    st.markdown(pipeline_svg(log_rows, decision), unsafe_allow_html=True)
 
     sql_rows = sql_log_for(conn, run["run_id"])
     usage_rows = model_usage_for(conn, run["run_id"])

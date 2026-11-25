@@ -15,8 +15,10 @@ import streamlit as st
 from dashboard.db import all_model_usage, read_only_connection
 from dashboard.models import per_expert_summary, task_expert_counts
 from dashboard.resolve import resolve_db_path
+from dashboard.theme import inject
 
 st.set_page_config(page_title="Law School Outcomes Agent — Models (MoE)", layout="wide")
+inject()
 st.title("Models (MoE)")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 st.caption("\"Mixture of experts\" here is an application-level router sending each task to an "

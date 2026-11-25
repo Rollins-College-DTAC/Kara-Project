@@ -56,3 +56,27 @@ def test_long_messages_are_shortened():
 def test_double_quotes_in_a_message_never_leak_into_the_dot_label():
     dot = build_dot([row("detect", message='file "weird name".csv landed')], decision=None)
     assert "'weird name'" in dot and '"weird name"' not in dot
+
+
+# ---------------------------------------------------------------- animated SVG pipeline
+
+from dashboard.flow import pipeline_svg  # noqa: E402
+
+
+def test_pipeline_svg_is_one_line_and_marks_finished_edges_as_flowing():
+    svg = pipeline_svg([row("detect"), row("land")], decision=None)
+    assert "\n" not in svg and "lsc-flow-edge" in svg and "<svg" in svg
+
+
+def test_pipeline_svg_pulses_a_running_step_and_greys_unreached_ones():
+    svg = pipeline_svg([row("detect", status="running")], decision=None)
+    assert "lsc-flow-pulse" in svg and "#D8D2C4" in svg
+
+
+def test_pipeline_svg_takes_the_hold_branch_when_the_trigger_fired():
+    svg = pipeline_svg([row("decide", status="held"), row("act", status="held")], decision={"fired": True})
+    assert "Hold and alert" in svg and 'stroke-dasharray="4 4"' in svg  # the untaken Publish branch is dashed
+
+
+def test_pipeline_svg_escapes_nothing_unsafe_because_it_only_uses_known_labels():
+    assert "<script" not in pipeline_svg([row("detect", message="<script>x</script>")], decision=None)

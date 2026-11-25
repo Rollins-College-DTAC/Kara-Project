@@ -18,14 +18,15 @@ from dashboard.applications import sample_application, upcoming_deadlines
 from dashboard.compare import admission_odds, build_school_profiles, rank_by_lsat
 from dashboard.db import read_only_connection, silver_records
 from dashboard.resolve import resolve_db_path
-from dashboard.ui import CSS, money, school_card, stat_card, timeline
+from dashboard.charts import value_bubble_chart
+from dashboard.theme import inject
+from dashboard.ui import hero, money, school_card, stat_card, timeline
 
 st.set_page_config(page_title="Compare Schools", layout="wide")
-st.markdown(CSS, unsafe_allow_html=True)
-st.markdown('<h1 class="lsc-title">Compare Schools</h1>'
-            '<div class="lsc-tagline">Outcomes, cost and deadlines side by side. Simulated data only — '
-            'a portfolio demonstration, not a tool for choosing a real law school. Application status, '
-            'offers, deadlines and ranks are invented samples.</div>', unsafe_allow_html=True)
+inject()
+st.markdown(hero("Compare Schools", "Outcomes, cost and deadlines side by side. Simulated data only: a portfolio "
+                 "demonstration, not a tool for choosing a real law school. Application status, offers, "
+                 "deadlines and ranks are invented samples.", []), unsafe_allow_html=True)
 
 PATH = resolve_db_path()
 if not PATH.exists():
@@ -72,7 +73,7 @@ events = upcoming_deadlines(list(apps.values()), today)
 nxt = events[0] if events else None
 
 overview = (
-    stat_card("Schools tracked", str(len(chosen)), "in this comparison") +
+    stat_card("Schools tracked", str(len(chosen)), "in this comparison", count_to=len(chosen)) +
     stat_card("Average net cost", money(sum(nets) / len(nets)) if nets else "—", "after sample scholarship offers") +
     stat_card("Average median LSAT", f"{sum(lsats) / len(lsats):.0f}" if lsats else "—", "across tracked schools") +
     stat_card("Next deadline", nxt[0].strftime("%b %d") if nxt else "—",
@@ -88,12 +89,14 @@ cards = "".join(school_card(
 st.markdown(f'<div class="lsc-grid2">{cards}</div>', unsafe_allow_html=True)
 
 st.markdown('<h2 class="lsc-h2">Employment rate vs. estimated net cost</h2>', unsafe_allow_html=True)
-scatter = [{"Estimated net cost ($)": profiles[c].est_net_cost, "Employment rate": profiles[c].emp_rate,
-            "School": labels[c]} for c in chosen
-           if profiles[c].est_net_cost is not None and profiles[c].emp_rate is not None]
-if scatter:
-    st.scatter_chart(scatter, x="Estimated net cost ($)", y="Employment rate", color="School", size=120)
-    st.caption("Up and to the left is better: higher employment at a lower estimated net cost.")
+chart = value_bubble_chart([{
+    "school": labels[c], "code": c, "net_cost": profiles[c].est_net_cost, "emp_rate": profiles[c].emp_rate,
+    "class_size": profiles[c].class_size, "value_index": profiles[c].value_index, "rank": ranks.get(c)}
+    for c in chosen])
+if chart is not None:
+    st.altair_chart(chart, use_container_width=True, theme=None)
+    st.caption("Hover a bubble for details; scroll to zoom and drag to pan. Bubble size is class size, darker "
+               "is better value. Dashed lines are the group averages; the top-left is the sweet spot.")
 else:
     st.caption("Not enough cost/outcome data among the selected schools for a chart.")
 

@@ -164,3 +164,16 @@ def batch_mean_series(conn: sqlite3.Connection) -> list[dict]:
     return rows(conn, "SELECT file_name, MIN(landed_at) AS landed_at, AVG(emp_rate) AS emp_rate "
                       "FROM silver_records WHERE status = 'published' AND emp_rate IS NOT NULL "
                       "GROUP BY file_name ORDER BY landed_at")
+
+
+def overview_counts(conn: sqlite3.Connection) -> dict:
+    """Headline numbers for the Live Run hero."""
+    one = lambda sql: rows(conn, sql)[0]["n"]
+    last = rows(conn, "SELECT statistic FROM decision_log WHERE statistic IS NOT NULL ORDER BY decided_at DESC LIMIT 1")
+    return {
+        "files": one("SELECT COUNT(DISTINCT file_name) AS n FROM run_log WHERE step = 'land'"),
+        "published": one("SELECT COUNT(*) AS n FROM silver_records WHERE status = 'published'"),
+        "held": one("SELECT COUNT(*) AS n FROM silver_records WHERE status = 'held'"),
+        "open_incidents": one("SELECT COUNT(*) AS n FROM incident_log WHERE status = 'open'"),
+        "last_z": last[0]["statistic"] if last else None,
+    }

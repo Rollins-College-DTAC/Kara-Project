@@ -41,3 +41,18 @@ def test_rows_per_run_only_reads_the_land_step_and_sorts_newest_first():
     assert [r["run_id"] for r in result] == ["r2", "r1"]
     assert result[1] == {"run_id": "r1", "file_name": "a.csv", "rows_in": 10, "rows_out": 10,
                          "rows_rejected": 0, "started_at": "2026-01-01T00:00:00"}
+
+
+def test_overview_counts_summarises_the_database(tmp_path):
+    from agent.db import connect
+    from agent.sql import now_iso
+    from dashboard.db import overview_counts
+    conn = connect(tmp_path / "d.sqlite")
+    conn.execute("INSERT INTO run_log (run_id, step, file_name, started_at) VALUES ('r', 'land', 'a.csv', ?)", (now_iso(),))
+    conn.execute("INSERT INTO silver_records (file_name, row_index, run_id, status, consistency_ok, consistency_flags, landed_at) "
+                 "VALUES ('a.csv', 0, 'r', 'published', 1, '[]', ?), ('a.csv', 1, 'r', 'held', 1, '[]', ?)", (now_iso(), now_iso()))
+    conn.execute("INSERT INTO decision_log (run_id, file_name, rule, statistic, fired, action, decided_at) "
+                 "VALUES ('r', 'a.csv', 'anomaly', 2.5, 0, 'publish', ?)", (now_iso(),))
+    conn.commit()
+    c = overview_counts(conn)
+    assert c == {"files": 1, "published": 1, "held": 1, "open_incidents": 0, "last_z": 2.5}

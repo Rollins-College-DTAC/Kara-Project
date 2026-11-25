@@ -63,3 +63,35 @@ def test_timeline_colors_by_urgency_and_labels_days():
 
 def test_timeline_empty_state():
     assert "No upcoming deadlines" in timeline([], date(2026, 11, 10))
+
+
+# ---------------------------------------------------------------- animated pieces
+
+from dashboard.ui import counter, hero, ring  # noqa: E402
+
+
+def test_ring_encodes_the_value_as_a_dash_offset_and_stays_one_line():
+    out = ring(0.75, "good", "employed")
+    assert "\n" not in out and "75.0%" in out
+    c = float(out.split("--c:")[1].split(";")[0])
+    off = float(out.split("--off:")[1].split('"')[0])
+    assert abs(off - c * 0.25) < 0.05
+
+
+def test_ring_clamps_out_of_range_and_handles_missing():
+    assert "--off:0.00" in ring(1.7, "good", "x")
+    assert "—" in ring(None, "neutral", "x")
+
+
+def test_counter_carries_the_target_number_for_the_css_count_up():
+    assert 'style="--to:164"' in counter(164) and 'aria-label="164"' in counter(164)
+
+
+def test_hero_escapes_text_and_renders_kpis():
+    out = hero("<b>Title</b>", "sub", [("Imports", "12", "files")])
+    assert "&lt;b&gt;" in out and "<b>Title" not in out and "Imports" in out and "\n" not in out
+
+
+def test_stat_card_can_count_up():
+    from dashboard.ui import stat_card
+    assert "cu" in stat_card("Schools", "6", count_to=6)

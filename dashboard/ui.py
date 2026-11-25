@@ -66,6 +66,62 @@ html, body, [class*="css"], .stApp { font-family: 'Inter', system-ui, sans-serif
 .stApp h1.lsc-title { font-weight: 700 !important; font-size: 2.3rem !important; }
 .stApp h3.lsc-name { font-size: 1.28rem !important; font-weight: 600 !important; padding: 0 !important; }
 .stApp h2.lsc-h2 { font-size: 1.5rem !important; font-weight: 600 !important; }
+
+.stApp [data-testid="stHeading"] h1, .stApp [data-testid="stHeading"] h2, .stApp [data-testid="stHeading"] h3,
+.stApp .stMarkdown h1, .stApp .stMarkdown h2, .stApp .stMarkdown h3 { font-family: 'Playfair Display', Georgia, serif !important; color: #1F2F54 !important; letter-spacing: -.01em; }
+section[data-testid="stSidebar"] { background: linear-gradient(180deg, #1F2F54 0%, #141E38 100%); }
+section[data-testid="stSidebar"] a, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p { color: #E8E2D4 !important; }
+section[data-testid="stSidebar"] a[aria-current="page"] { background: rgba(255,255,255,.14) !important; border-radius: 8px; }
+section[data-testid="stSidebar"] a:hover { background: rgba(255,255,255,.08) !important; border-radius: 8px; }
+[data-testid="stMetric"] { background: #fff; border: 1px solid #E6DFD3; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(31,47,84,.04); transition: transform .2s ease, box-shadow .2s ease; }
+[data-testid="stMetric"]:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(31,47,84,.10); }
+[data-testid="stExpander"] { background: #fff; border: 1px solid #E6DFD3 !important; border-radius: 12px; }
+[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; border: 1px solid #E6DFD3; }
+.stApp .stButton button, .stApp .stDownloadButton button { border-radius: 999px; border: 1px solid #1F2F54; color: #1F2F54; transition: all .2s ease; }
+.stApp .stButton button:hover { background: #1F2F54; color: #fff; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes growx { from { transform: scaleX(0); } }
+@keyframes ringin { from { stroke-dashoffset: var(--c); } }
+@keyframes flowdash { to { stroke-dashoffset: -24; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes drift { 0% { transform: translate(0,0); } 50% { transform: translate(-30px,18px); } 100% { transform: translate(0,0); } }
+@property --n { syntax: '<integer>'; initial-value: 0; inherits: false; }
+@keyframes countup { from { --n: 0; } }
+.cu { --n: var(--to); animation: countup 1.4s cubic-bezier(.2,.8,.2,1) both; counter-reset: num var(--n); }
+.cu::after { content: counter(num); }
+.stApp .block-container > div { animation: rise .5s ease both; }
+.lsc-stat, .lsc-card { animation: rise .6s cubic-bezier(.2,.8,.2,1) both; transition: transform .25s ease, box-shadow .25s ease; }
+.lsc-stat:hover, .lsc-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(31,47,84,.13); }
+.lsc-grid4 > :nth-child(2), .lsc-grid2 > :nth-child(2) { animation-delay: .07s; }
+.lsc-grid4 > :nth-child(3), .lsc-grid2 > :nth-child(3) { animation-delay: .14s; }
+.lsc-grid4 > :nth-child(4), .lsc-grid2 > :nth-child(4) { animation-delay: .21s; }
+.lsc-grid2 > :nth-child(5) { animation-delay: .28s; }
+.lsc-grid2 > :nth-child(6) { animation-delay: .35s; }
+.lsc-bar div { transform-origin: left; animation: growx 1.1s cubic-bezier(.2,.8,.2,1) both; }
+.lsc-track div { transform-origin: left; animation: growx 1.2s cubic-bezier(.2,.8,.2,1) both; }
+.lsc-body { display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 16px; }
+.lsc-ring { position: relative; width: 92px; height: 92px; }
+.lsc-ring svg { transform: rotate(-90deg); }
+.lsc-ring-fg { stroke-dasharray: var(--c); stroke-dashoffset: var(--off); animation: ringin 1.4s cubic-bezier(.2,.8,.2,1) both; stroke-linecap: round; }
+.lsc-ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lsc-ring-txt b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.lsc-ring-txt span { font-size: .58rem; text-transform: uppercase; letter-spacing: .06em; color: #6B7080; }
+.lsc-hero { position: relative; overflow: hidden; border-radius: 20px; padding: 30px 34px 26px; color: #fff; margin-bottom: 1.6rem; background: linear-gradient(125deg, #1F2F54 0%, #2C4170 55%, #3E5A9A 100%); box-shadow: 0 18px 40px rgba(31,47,84,.22); }
+.lsc-hero::before { content: ''; position: absolute; width: 380px; height: 380px; right: -90px; top: -150px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%); animation: drift 14s ease-in-out infinite; }
+.lsc-hero::after { content: ''; position: absolute; width: 300px; height: 300px; left: 30%; bottom: -190px; border-radius: 50%; background: radial-gradient(circle, rgba(201,163,92,.30), transparent 65%); animation: drift 18s ease-in-out infinite reverse; }
+.lsc-hero-eyebrow { font-size: .72rem; text-transform: uppercase; letter-spacing: .14em; color: #C9A35C; font-weight: 600; position: relative; z-index: 1; }
+.lsc-hero-title { font-family: 'Playfair Display', Georgia, serif; font-size: 2.5rem; font-weight: 700; margin: 4px 0 4px; letter-spacing: -.01em; position: relative; z-index: 1; }
+.lsc-hero-sub { color: #CBD5EC; font-size: .92rem; max-width: 760px; position: relative; z-index: 1; }
+.lsc-hero-kpis { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 20px; position: relative; z-index: 1; }
+@media (max-width: 900px) { .lsc-hero-kpis { grid-template-columns: repeat(2, 1fr); } .lsc-body { grid-template-columns: 1fr 1fr; } .lsc-ring { grid-column: 1 / -1; margin: 0 auto; } }
+.lsc-kpi { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(4px); }
+.lsc-kpi .lbl { font-size: .66rem; text-transform: uppercase; letter-spacing: .09em; color: #B7C4E4; }
+.lsc-kpi .val { font-size: 1.65rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.lsc-kpi .sub { font-size: .72rem; color: #B7C4E4; }
+.lsc-flow { background: #fff; border: 1px solid #E6DFD3; border-radius: 16px; padding: 14px 10px 6px; box-shadow: 0 1px 2px rgba(31,47,84,.04); }
+.lsc-flow svg { width: 100%; height: auto; display: block; }
+.lsc-flow-edge { stroke-dasharray: 6 6; animation: flowdash .9s linear infinite; }
+.lsc-flow-pulse { animation: pulse 1.2s ease-in-out infinite; }
 </style>"""
 
 
@@ -117,9 +173,10 @@ def metric(label: str, value: str, sub: str = "", tone: str = "neutral") -> str:
             f'<div class="val" style="color:{color}">{esc(value)}</div>{sub_html}</div>')
 
 
-def stat_card(label: str, value: str, sub: str = "") -> str:
+def stat_card(label: str, value: str, sub: str = "", count_to: int | None = None) -> str:
     sub_html = f'<div class="sub">{esc(sub)}</div>' if sub else ""
-    return f'<div class="lsc-stat"><div class="lbl">{esc(label)}</div><div class="val">{esc(value)}</div>{sub_html}</div>'
+    shown = counter(count_to) if count_to is not None else esc(value)
+    return f'<div class="lsc-stat"><div class="lbl">{esc(label)}</div><div class="val">{shown}</div>{sub_html}</div>'
 
 
 def employment_bar(breakdown: dict | None) -> str:
@@ -138,16 +195,16 @@ def employment_bar(breakdown: dict | None) -> str:
 def school_card(*, name: str, code: str, rank: int | None, status: str, odds: str | None, lsat: float | None,
                 gpa: float | None, cost: float | None, offer: float | None, net: float | None,
                 emp_rate: float | None, breakdown: dict | None) -> str:
-    rank_txt = f" · Rank #{rank} (sample)" if rank else ""
+    rank_txt = f" \u00b7 Rank #{rank} (sample)" if rank else ""
     pills = pill(status, status_tone(status)) + (pill(odds, odds_tone(odds)) if odds else "")
-    lsat_gpa = f"{lsat:.0f} / {gpa:.2f}" if lsat is not None and gpa is not None else "—"
+    lsat_gpa = f"{lsat:.0f} / {gpa:.2f}" if lsat is not None and gpa is not None else "\u2014"
     offer_sub = f"offer {money(offer)} of {money(cost)}" if offer else f"sticker {money(cost)}, no offer yet"
-    big3 = (metric("LSAT / GPA medians", lsat_gpa) +
-            metric("Net tuition", money(net), offer_sub, cost_tone(net)) +
-            metric("Employment rate", pct(emp_rate), "10 months post-grad", employment_tone(emp_rate)))
+    body = (ring(emp_rate, employment_tone(emp_rate), "employed") +
+            metric("LSAT / GPA medians", lsat_gpa, "median, current class") +
+            metric("Net tuition", money(net), offer_sub, cost_tone(net)))
     return (f'<div class="lsc-card"><div class="lsc-head"><div><h3 class="lsc-name">{esc(name)}</h3>'
             f'<div class="lsc-sub">{esc(code)}{esc(rank_txt)}</div></div><div class="lsc-pills">{pills}</div></div>'
-            f'<div class="lsc-big3">{big3}</div><div class="lsc-sec">Employment by type</div>'
+            f'<div class="lsc-body">{body}</div><div class="lsc-sec">Employment by type \u00b7 10 months post-grad</div>'
             f'{employment_bar(breakdown)}</div>')
 
 
@@ -166,3 +223,33 @@ def timeline(events: list[tuple[date, str, str]], today: date, horizon_days: int
             f'<div class="lsc-tl-what">{esc(label)}<span>{esc(school)} · {when}</span></div>'
             f'<div class="lsc-track"><div style="width:{width}%;background:{tone_color(tone)}"></div></div></div>')
     return f'<div class="lsc-tl">{"".join(rows)}</div>'
+
+
+import math
+
+
+def ring(value: float | None, tone: str, label: str) -> str:
+    """Animated progress ring; the stroke draws itself in via CSS."""
+    r = 38
+    c = 2 * math.pi * r
+    frac = 0.0 if value is None else max(0.0, min(1.0, value))
+    color = tone_color(tone) if tone in ("good", "warn", "bad") else NAVY
+    return (f'<div class="lsc-ring"><svg width="92" height="92" viewBox="0 0 92 92">'
+            f'<circle cx="46" cy="46" r="{r}" fill="none" stroke="#ECE8DF" stroke-width="8"/>'
+            f'<circle class="lsc-ring-fg" cx="46" cy="46" r="{r}" fill="none" stroke="{color}" stroke-width="8" '
+            f'style="--c:{c:.2f};--off:{c * (1 - frac):.2f}"/></svg>'
+            f'<div class="lsc-ring-txt"><b style="color:{color}">{pct(value)}</b><span>{esc(label)}</span></div></div>')
+
+
+def counter(value: int) -> str:
+    """An integer that counts up from zero on load (CSS only)."""
+    return f'<span class="cu" style="--to:{int(value)}" aria-label="{int(value)}"></span>'
+
+
+def hero(title: str, subtitle: str, kpis: list[tuple[str, str, str]], eyebrow: str = "Law School Outcomes Agent") -> str:
+    """kpis: (label, value, sub). Values are escaped; pass counter() HTML via raw=... not supported here."""
+    tiles = "".join(f'<div class="lsc-kpi"><div class="lbl">{esc(l)}</div><div class="val">{esc(v)}</div>'
+                    f'<div class="sub">{esc(s)}</div></div>' for l, v, s in kpis)
+    grid = f'<div class="lsc-hero-kpis">{tiles}</div>' if tiles else ""
+    return (f'<div class="lsc-hero"><div class="lsc-hero-eyebrow">{esc(eyebrow)}</div>'
+            f'<div class="lsc-hero-title">{esc(title)}</div><div class="lsc-hero-sub">{esc(subtitle)}</div>{grid}</div>')

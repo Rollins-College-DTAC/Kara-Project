@@ -16,6 +16,7 @@ dependencies = [
     "streamlit==1.50.0",
     "statsmodels==0.14.4",
     "scipy==1.13.1",  # newer scipy drops the 'disp' kwarg statsmodels 0.14.4's optimizer still passes
+    "altair==5.5.0",  # interactive charts (already a Streamlit dependency; pinned because we import it)
     "pandas==2.3.3",  # ETSModel.get_prediction needs a pandas-indexed series, not a bare array
 ]
 

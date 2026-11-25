@@ -19,8 +19,10 @@ from dashboard.db import (all_eval_log, all_incidents, all_model_usage, all_revi
                           read_only_connection)
 from dashboard.governance import incident_summary, latest_gold_scores, review_queue_summary, tokens_and_cost_on
 from dashboard.resolve import resolve_db_path
+from dashboard.theme import inject
 
 st.set_page_config(page_title="Law School Outcomes Agent — Governance", layout="wide")
+inject()
 st.title("Governance")
 st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
 
