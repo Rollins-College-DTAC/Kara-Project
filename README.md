@@ -1,14 +1,17 @@
 # Law School Outcomes Agent
 
 A governed data agent: a law school applicant comparing schools, served by a pipeline that
-lands, cleans, scores and publishes simulated school-level employment outcomes — nothing here
+lands, cleans, scores and publishes school-level employment outcomes — nothing here
 is auto-published without passing a consistency check and a statistical anomaly trigger, and
 every held import waits for a person to release it.
 
-**⚠️ All schools and figures in this project are fictional.** The data generator invents 30
-law schools and their numbers from scratch. This is a portfolio demonstration of a governed
-data pipeline, not a tool for choosing a real law school. Real disclosures are published by the
-ABA and by each school directly.
+**Data:** real figures from the American Bar Association's Standard 509 and Employment Summary
+disclosures, which each ABA-approved law school reports (employment summaries for the graduating
+classes of 2016–2025; admissions, tuition and bar passage from the newest reports, including the
+2026 bar edition). Source: [abarequireddisclosures.org](https://www.abarequireddisclosures.org).
+The ABA assumes no responsibility for inaccuracies in the data schools report. This is a class
+project, not admissions advice or a ranking. Application status, scholarship offers and
+deadlines on the Compare Schools page are invented samples and labeled that way.
 
 **Live app:** not yet deployed — see [Milestone 6 status](#deployment-status) below.
 
@@ -59,8 +62,8 @@ not the learned-gate architecture inside some large models. See
 
 ![Compare Schools page](docs/images/compare_schools.jpg)
 
-All five are from a real local demo run (90 simulated imports, model calls disabled to avoid
-API cost) — not mockups.
+These screenshots are from an earlier run on simulated data (model calls disabled to avoid API
+cost) and show the layout, not the real figures; retake them once the real-data build is deployed.
 
 ## Running it yourself
 
@@ -106,7 +109,7 @@ step panels — see the screenshots above.
 
 ## Governance
 
-- Simulated data only — see the warning at the top of this README.
+- Real data is attributed to its source and never edited by hand; simulated data is always labeled.
 - A person releases or rejects every held import; the agent never auto-publishes over a broken
   consistency check or a fired anomaly trigger.
 - Text inside a record (the free-text notes field) is always treated as data, never as
