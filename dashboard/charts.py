@@ -60,3 +60,34 @@ def value_bubble_chart(points: list[dict], height: int = 440) -> alt.LayerChart 
             .configure_axis(gridColor=GRID, domainColor="#D8D2C4", labelFont="Inter", titleFont="Inter",
                             labelColor=SLATE, titleColor=SLATE, titleFontWeight=500)
             .configure_legend(labelFont="Inter", titleFont="Inter", labelColor=SLATE, titleColor=SLATE))
+
+
+def employment_trend_chart(series: dict[str, list], height: int = 360) -> alt.LayerChart | None:
+    """series: label -> [(graduating class, employment rate), ...]. The label "All schools" is drawn
+    as a dashed grey reference line; every other series is a navy-family line with end labels."""
+    rows = [{"series": label, "year": int(y), "rate": v} for label, pts in series.items() for y, v in pts
+            if v is not None]
+    if not rows:
+        return None
+    names = [n for n in series if n != "All schools"]
+    palette = ["#1F2F54", "#5C77B4", "#C9A35C", "#C9707B", "#3F8F6B", "#8A6FB0", "#6B7080", "#B9C6E4"]
+    color = alt.Color("series:N", legend=alt.Legend(orient="bottom", title=None),
+                      scale=alt.Scale(domain=names + (["All schools"] if "All schools" in series else []),
+                                      range=palette[:len(names)] + (["#9AA0AE"] if "All schools" in series else [])))
+    hover = alt.selection_point(on="mouseover", fields=["series"], nearest=True, empty=False)
+    base = alt.Chart(alt.Data(values=rows)).encode(
+        x=alt.X("year:O", title="Graduating class", axis=alt.Axis(labelAngle=0)),
+        y=alt.Y("rate:Q", title="Employed in a bar-passage-required job", axis=alt.Axis(format=".0%"),
+                scale=alt.Scale(zero=False, nice=True)), color=color,
+        detail="series:N")
+    tip = [alt.Tooltip("series:N", title="School"), alt.Tooltip("year:O", title="Class of"),
+           alt.Tooltip("rate:Q", title="Employment rate", format=".1%")]
+    lines = base.mark_line(strokeWidth=2.6, interpolate="monotone").encode(
+        strokeDash=alt.condition(alt.datum.series == "All schools", alt.value([6, 5]), alt.value([1, 0])),
+        opacity=alt.condition(hover, alt.value(1), alt.value(0.8)))
+    dots = base.mark_circle(size=70, stroke="white", strokeWidth=1.5).encode(tooltip=tip).add_params(hover)
+    return (alt.layer(lines, dots).properties(height=height)
+            .configure_view(stroke=None, fill="#FFFFFF")
+            .configure_axis(gridColor=GRID, domainColor="#D8D2C4", labelFont="Inter", titleFont="Inter",
+                            labelColor=SLATE, titleColor=SLATE, titleFontWeight=500)
+            .configure_legend(labelFont="Inter", labelColor=SLATE))

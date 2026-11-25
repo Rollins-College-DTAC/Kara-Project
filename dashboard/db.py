@@ -177,3 +177,30 @@ def overview_counts(conn: sqlite3.Connection) -> dict:
         "open_incidents": one("SELECT COUNT(*) AS n FROM incident_log WHERE status = 'open'"),
         "last_z": last[0]["statistic"] if last else None,
     }
+
+
+# ---------------------------------------------------------------- real ABA data
+
+def school_profiles(conn: sqlite3.Connection) -> list[dict]:
+    """Real school profiles that passed their sanity rules."""
+    try:
+        return rows(conn, "SELECT * FROM school_profile WHERE consistency_ok = 1 ORDER BY school_name")
+    except sqlite3.OperationalError:  # an older database with no real data yet
+        return []
+
+
+def flagged_profiles(conn: sqlite3.Connection) -> list[dict]:
+    try:
+        return rows(conn, "SELECT school_name, consistency_flags FROM school_profile WHERE consistency_ok = 0")
+    except sqlite3.OperationalError:
+        return []
+
+
+def aba_employment(conn: sqlite3.Connection) -> list[dict]:
+    """Published real employment rows, one per school and graduating class."""
+    try:
+        return rows(conn, "SELECT school_code, grad_year, grads, emp_bar_required, emp_jd_advantage, emp_other, "
+                          "emp_unemployed, emp_biglaw, emp_fed_clerkship, emp_public_interest, emp_government, "
+                          "emp_business FROM silver_records WHERE data_source = 'aba' AND status = 'published'")
+    except sqlite3.OperationalError:
+        return []

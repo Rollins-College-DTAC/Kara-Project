@@ -32,9 +32,18 @@ class SchoolProfile:
     bar_pass_rate: float | None
     emp_rate: float | None
     emp_breakdown: dict | None = None  # share of grads in each employment category (sums to ~1)
+    # Real (ABA) data only:
+    school_type: str | None = None          # Public / Private
+    trend: list | None = None               # [(graduating class, employment rate), ...]
+    employer_shares: dict | None = None     # share of grads at 501+ firms, federal clerkships, ...
+    bar_state_avg: float | None = None      # the state-weighted first-time pass rate to compare with
+    net_override: float | None = None       # real estimated net tuition, replacing the simulated formula
+    years: tuple | None = None              # (first, last) graduating class pooled into emp_rate
 
     @property
     def est_net_cost(self) -> float | None:
+        if self.net_override is not None:
+            return self.net_override
         if self.cost_of_attendance is None or self.scholarship_share is None:
             return None
         return round(self.cost_of_attendance * (1 - self.scholarship_share), 2)
@@ -108,3 +117,56 @@ def admission_odds(lsat: float, gpa: float | None, school_lsat: float | None,
     if score >= -0.5:
         return "Target"
     return "Reach"
+
+
+
+# ---------------------------------------------------------------- real ABA data
+
+EMPLOYER_COLUMNS = {"biglaw": "emp_biglaw", "fed_clerkship": "emp_fed_clerkship",
+                    "public_interest": "emp_public_interest", "government": "emp_government",
+                    "business": "emp_business"}
+
+
+def _pooled(rows: list[dict], column: str) -> float | None:
+    den = sum(r.get("grads") or 0 for r in rows)
+    return round(sum(r.get(column) or 0 for r in rows) / den, 4) if den else None
+
+
+def build_real_profiles(profile_rows: list[dict], employment_rows: list[dict],
+                        window: int = 3) -> dict[str, SchoolProfile]:
+    """Real ABA profiles: admissions, cost and bar passage from school_profile, employment pooled over
+    each school's latest `window` graduating classes (pooled counts, not an average of yearly rates),
+    plus the full yearly trend."""
+    by_school: dict[str, list[dict]] = {}
+    for r in employment_rows:
+        by_school.setdefault(r["school_code"], []).append(r)
+
+    out = {}
+    for p in profile_rows:
+        rows = by_school.get(p["school_key"], [])
+        years = sorted({r["grad_year"] for r in rows})
+        recent_years = years[-window:]
+        recent = [r for r in rows if r["grad_year"] in recent_years]
+        breakdown = ({key: _pooled(recent, col) for key, col in EMP_CATEGORIES.items()} if recent else None)
+        employers = {key: _pooled(recent, col) for key, col in EMPLOYER_COLUMNS.items()} if recent else None
+        tuition = p.get("tuition_resident")
+        out[p["school_key"]] = SchoolProfile(
+            code=p["school_key"], name=p["school_name"], n=len(rows), class_size=p.get("enrollees"),
+            acceptance_rate=p.get("acceptance_rate"), lsat_50=p.get("lsat_50"), gpa_50=p.get("gpa_50"),
+            scholarship_share=p.get("grants_share"),
+            cost_of_attendance=(tuition + (p.get("fees") or 0)) if tuition is not None else None,
+            bar_pass_rate=p.get("bar_first_time_pass"), emp_rate=_pooled(recent, "emp_bar_required"),
+            emp_breakdown=breakdown, school_type=p.get("school_type"),
+            trend=[(y, _pooled([r for r in rows if r["grad_year"] == y], "emp_bar_required")) for y in years],
+            employer_shares=employers, bar_state_avg=p.get("bar_state_avg"),
+            net_override=p.get("est_net_tuition"),
+            years=(recent_years[0], recent_years[-1]) if recent_years else None)
+    return out
+
+
+def national_trend(employment_rows: list[dict]) -> list[tuple[int, float]]:
+    """All-schools pooled employment rate for each graduating class."""
+    by_year: dict[int, list[dict]] = {}
+    for r in employment_rows:
+        by_year.setdefault(r["grad_year"], []).append(r)
+    return [(y, _pooled(rs, "emp_bar_required")) for y, rs in sorted(by_year.items())]

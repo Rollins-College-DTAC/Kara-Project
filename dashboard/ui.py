@@ -86,6 +86,7 @@ section[data-testid="stSidebar"] a:hover { background: rgba(255,255,255,.08) !im
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 @keyframes drift { 0% { transform: translate(0,0); } 50% { transform: translate(-30px,18px); } 100% { transform: translate(0,0); } }
 @property --n { syntax: '<integer>'; initial-value: 0; inherits: false; }
+@keyframes sparkdraw { from { stroke-dashoffset: var(--len); } }
 @keyframes countup { from { --n: 0; } }
 .cu { --n: var(--to); animation: countup 1.4s cubic-bezier(.2,.8,.2,1) both; counter-reset: num var(--n); }
 .cu::after { content: counter(num); }
@@ -102,6 +103,11 @@ section[data-testid="stSidebar"] a:hover { background: rgba(255,255,255,.08) !im
 .lsc-body { display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 16px; }
 .lsc-ring { position: relative; width: 92px; height: 92px; }
 .lsc-ring svg { transform: rotate(-90deg); }
+.lsc-spark-line { stroke-dasharray: var(--len); stroke-dashoffset: 0; animation: sparkdraw 1.6s ease-out both; }
+.lsc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
+.lsc-chip { font-size: .72rem; padding: 3px 9px; border-radius: 999px; background: #F1EEE6; color: #1F2F54; border: 1px solid #E4DFD2; }
+.lsc-chip b { font-weight: 700; }
+.lsc-type { font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: #6B7080; }
 .lsc-ring-fg { stroke-dasharray: var(--c); stroke-dashoffset: var(--off); animation: ringin 1.4s cubic-bezier(.2,.8,.2,1) both; stroke-linecap: round; }
 .lsc-ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .lsc-ring-txt b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
@@ -192,19 +198,71 @@ def employment_bar(breakdown: dict | None) -> str:
     return f'<div class="lsc-bar">{segments}</div><div class="lsc-legend">{legend}</div>'
 
 
-def school_card(*, name: str, code: str, rank: int | None, status: str, odds: str | None, lsat: float | None,
-                gpa: float | None, cost: float | None, offer: float | None, net: float | None,
-                emp_rate: float | None, breakdown: dict | None) -> str:
-    rank_txt = f" \u00b7 Rank #{rank} (sample)" if rank else ""
-    pills = pill(status, status_tone(status)) + (pill(odds, odds_tone(odds)) if odds else "")
+def sparkline(trend: list | None, width: int = 150, height: int = 36) -> str:
+    """Tiny employment-rate line over graduating classes; draws itself in. trend: [(year, rate), ...]."""
+    pts = [(y, v) for y, v in (trend or []) if v is not None]
+    if len(pts) < 2:
+        return ""
+    lo, hi = min(v for _, v in pts), max(v for _, v in pts)
+    span = (hi - lo) or 1.0
+    pad = 4
+    xs = [pad + i * (width - 2 * pad) / (len(pts) - 1) for i in range(len(pts))]
+    ys = [height - pad - (v - lo) / span * (height - 2 * pad) for _, v in pts]
+    path = " ".join(f"{'M' if i == 0 else 'L'}{x:.1f},{y:.1f}" for i, (x, y) in enumerate(zip(xs, ys)))
+    length = sum(math.dist((xs[i], ys[i]), (xs[i + 1], ys[i + 1])) for i in range(len(xs) - 1))
+    first, last = pts[0], pts[-1]
+    return (f'<div class="lsc-spark"><svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+            f'role="img" aria-label="Employment rate {first[0]} to {last[0]}">'
+            f'<path class="lsc-spark-line" d="{path}" fill="none" stroke="{NAVY}" stroke-width="2" '
+            f'stroke-linecap="round" stroke-linejoin="round" style="--len:{length:.1f}"/>'
+            f'<circle cx="{xs[-1]:.1f}" cy="{ys[-1]:.1f}" r="3" fill="{NAVY}"/></svg>'
+            f'<div class="lsc-note">{first[0]}\u2013{last[0]}: {pct(first[1])} \u2192 {pct(last[1])}</div></div>')
+
+
+EMPLOYER_LABELS = {"biglaw": "501+ firms", "fed_clerkship": "Federal clerkships",
+                   "public_interest": "Public interest", "government": "Government", "business": "Business"}
+
+
+def chips(shares: dict | None) -> str:
+    """Employer-type chips for shares of the whole class; zero or missing shares are left out."""
+    items = [(EMPLOYER_LABELS[k], v) for k, v in (shares or {}).items() if k in EMPLOYER_LABELS and v]
+    if not items:
+        return ""
+    return '<div class="lsc-chips">' + "".join(
+        f'<span class="lsc-chip"><b>{pct(v)}</b> {esc(label)}</span>' for label, v in items) + "</div>"
+
+
+def school_card(*, name: str, code: str, rank: int | None, status: str | None, odds: str | None,
+                lsat: float | None, gpa: float | None, cost: float | None, offer: float | None,
+                net: float | None, emp_rate: float | None, breakdown: dict | None,
+                school_type: str | None = None, trend: list | None = None, employer_shares: dict | None = None,
+                emp_label: str = "employed", rank_label: str = "(sample)", bar_pass: float | None = None,
+                bar_state_avg: float | None = None, acceptance: float | None = None) -> str:
+    """Real-data cards pass school_type, trend, employer_shares, bar_* and rank_label; the sample-data
+    card leaves them out and keeps its application status and offer."""
+    rank_txt = f" \u00b7 Rank #{rank} {rank_label}".rstrip() if rank else ""
+    kind = f'<div class="lsc-type">{esc(school_type)}</div>' if school_type else ""
+    pills = (pill(status, status_tone(status)) if status else "") + (pill(odds, odds_tone(odds)) if odds else "")
     lsat_gpa = f"{lsat:.0f} / {gpa:.2f}" if lsat is not None and gpa is not None else "\u2014"
-    offer_sub = f"offer {money(offer)} of {money(cost)}" if offer else f"sticker {money(cost)}, no offer yet"
-    body = (ring(emp_rate, employment_tone(emp_rate), "employed") +
-            metric("LSAT / GPA medians", lsat_gpa, "median, current class") +
-            metric("Net tuition", money(net), offer_sub, cost_tone(net)))
-    return (f'<div class="lsc-card"><div class="lsc-head"><div><h3 class="lsc-name">{esc(name)}</h3>'
+    if offer is None and status is None:
+        net_sub = f"sticker {money(cost)}" if cost is not None else "tuition + fees, less median grant"
+    else:
+        net_sub = f"offer {money(offer)} of {money(cost)}" if offer else f"sticker {money(cost)}, no offer yet"
+    body = (ring(emp_rate, employment_tone(emp_rate), emp_label) +
+            metric("LSAT / GPA medians", lsat_gpa, "median, entering class") +
+            metric("Net tuition", money(net), net_sub, cost_tone(net)))
+    extra = ""
+    if bar_pass is not None:
+        diff = f"state {pct(bar_state_avg)}" if bar_state_avg is not None else "first-time takers"
+        tone = "neutral" if bar_state_avg is None else ("good" if bar_pass >= bar_state_avg else "warn")
+        extra += metric("Bar passage", pct(bar_pass), diff, tone)
+    if acceptance is not None:
+        extra += metric("Acceptance rate", pct(acceptance), "of applicants")
+    extra_html = f'<div class="lsc-body">{extra}</div>' if extra else ""
+    return (f'<div class="lsc-card"><div class="lsc-head"><div>{kind}<h3 class="lsc-name">{esc(name)}</h3>'
             f'<div class="lsc-sub">{esc(code)}{esc(rank_txt)}</div></div><div class="lsc-pills">{pills}</div></div>'
-            f'<div class="lsc-body">{body}</div><div class="lsc-sec">Employment by type \u00b7 10 months post-grad</div>'
+            f'<div class="lsc-body">{body}</div>{extra_html}{sparkline(trend)}{chips(employer_shares)}'
+            f'<div class="lsc-sec">Employment by type \u00b7 10 months post-grad</div>'
             f'{employment_bar(breakdown)}</div>')
 
 
