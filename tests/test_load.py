@@ -154,3 +154,21 @@ def test_load_records_is_idempotent(cfg, tmp_path):
     load_records(ctx, records)
     load_records(ctx, records)
     assert len(rows(conn, "SELECT * FROM silver_records WHERE file_name = 'f.csv'")) == len(records)
+
+
+def test_connect_adds_a_column_missing_from_an_older_database(tmp_path):
+    """A database created before cost_of_attendance existed (like the cloud data branch) must
+    be upgraded in place, not fail every load."""
+    import sqlite3
+    path = tmp_path / "old.sqlite"
+    old = sqlite3.connect(path)
+    old.execute("CREATE TABLE silver_records (file_name TEXT, row_index INTEGER, run_id TEXT, "
+                "scholarship_share REAL, PRIMARY KEY (file_name, row_index))")
+    old.execute("INSERT INTO silver_records VALUES ('a.csv', 0, 'r', 0.3)")
+    old.commit()
+    old.close()
+
+    conn = connect(path)
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(silver_records)")}
+    assert "cost_of_attendance" in cols
+    assert conn.execute("SELECT scholarship_share FROM silver_records").fetchone()[0] == 0.3

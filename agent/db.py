@@ -110,6 +110,20 @@ SCHEMA = [
 ]
 
 
+# Columns added after a table first shipped. CREATE TABLE IF NOT EXISTS never alters an existing
+# table, so a database created before one of these (e.g. the cloud data branch) gets it here.
+MIGRATIONS = [
+    ("silver_records", "cost_of_attendance", "REAL"),
+]
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    for table, column, decl in MIGRATIONS:
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if existing and column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def connect(path: Path) -> sqlite3.Connection:
     """Open the database in WAL mode (the agent writes, the dashboard only reads)."""
     path = Path(path)
@@ -119,5 +133,6 @@ def connect(path: Path) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     for ddl in SCHEMA:
         conn.execute(ddl)
+    migrate(conn)
     conn.commit()
     return conn
