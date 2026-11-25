@@ -75,13 +75,56 @@ def sheet_year(sheet_name: str) -> int:
     return int(m.group(1))
 
 
-def _n(row: dict, key: str) -> int:
-    v = row.get(key)
+def _n(row: dict, key: str | None) -> int:
+    v = row.get(key) if key else None
     return int(v) if isinstance(v, (int, float)) else 0
 
 
-# Every employment-status bucket in the file. They sum to Total_GraduatesTotal for every school
-# in every year checked, which is what the pipeline's categories-must-sum rule then re-verifies.
+# The ABA renamed columns over the years: 2024-25 end in "Total", 2020-23 in "Number", and
+# 2016-19 also renamed a few categories. Each concept lists its names, newest first. A concept
+# marked optional may be absent in some years (e.g. "law school funded" is not in 2016-18).
+ALIASES: dict[str, tuple[bool, list[str]]] = {
+    "grads": (True, ["Total_GraduatesTotal", "Total_GraduatesNumber"]),
+    "bar_ftlt": (True, ["Employed_BarAdmissionRequiredFTLT", "Employed_BarPassageRequiredFTLT"]),
+    "jd_ftlt": (True, ["Employed_JDAdvantageFTLT"]),
+    "bar_total": (True, ["Employed_BarAdmissionRequiredTotal", "Employed_BarPassageRequiredNumber"]),
+    "jd_total": (True, ["Employed_JDAdvantageTotal", "Employed_JDAdvantageNumber"]),
+    "profession": (True, ["Employed_ProfessionPositionTotal", "Employed_ProfessionPositionNumber"]),
+    "other_position": (True, ["Employed_OtherPositionTotal", "Employed_OtherPositionNumber",
+                              "Employed_NonProfessionPositionNumber"]),
+    "undeterminable": (True, ["Employed_UndeterminableTotal", "Employed_UndeterminableNumber"]),
+    "law_school": (False, ["Employed_LawSchoolTotal", "Employed_LawSchoolNumber"]),
+    "grad_study": (True, ["EnrolledInGraduateStudiesTotal", "EnrolledInGraduateStudiesNumber",
+                          "PursuingGraduateDegreeNumber"]),
+    "deferred": (True, ["EmployedStartDateDeferredTotal", "EmployedStartDateDeferredNumber",
+                        "UnEmployedStartDateDeferredNumber"]),
+    "not_seeking": (True, ["UnEmployedNotSeekingTotal", "UnEmployedNotSeekingNumber"]),
+    "seeking": (True, ["UnEmployedSeekingTotal", "UnEmployedSeekingNumber"]),
+    "unknown": (True, ["EmploymentStatusUnknownTotal", "EmploymentStatusUnknownNumber"]),
+    "biglaw": (True, ["501Plus-Total", "501-PLUS"]),
+    "fed_clerkship": (True, ["Clerkships_Federal_Total", "Clerkships_Federal"]),
+    "public_interest": (True, ["PublicInterest_Total", "PublicInterest"]),
+    "government": (True, ["Government_Total", "Government"]),
+    "business": (True, ["BusinessIndustry_Total", "BusinessIndustry"]),
+}
+
+
+def resolve_layout(columns) -> dict[str, str | None]:
+    """Concept -> the column name this file uses. Raises (rather than guessing) if a required
+    concept can't be found, so an unrecognized layout can never load as silent zeros."""
+    cols = set(columns)
+    layout, missing = {}, []
+    for concept, (required, names) in ALIASES.items():
+        found = next((n for n in names if n in cols), None)
+        layout[concept] = found
+        if required and found is None:
+            missing.append(f"{concept} (looked for {', '.join(names)})")
+    if missing:
+        raise ValueError("unrecognized Employment Summary layout; missing: " + "; ".join(missing))
+    return layout
+
+
+# The 2024-25 names of the status buckets (used by tests to build rows in the newest layout).
 STATUS_BUCKETS = [
     "Employed_BarAdmissionRequiredTotal", "Employed_JDAdvantageTotal", "Employed_ProfessionPositionTotal",
     "Employed_OtherPositionTotal", "Employed_UndeterminableTotal", "Employed_LawSchoolTotal",
@@ -89,34 +132,65 @@ STATUS_BUCKETS = [
     "UnEmployedSeekingTotal", "EmploymentStatusUnknownTotal",
 ]
 
+# Every employment-status bucket. They sum to Total_Graduates for every school in every year,
+# which the loader verifies for each file and the pipeline's categories-must-sum rule re-checks.
+STATUS_CONCEPTS = ["bar_total", "jd_total", "profession", "other_position", "undeterminable", "law_school",
+                   "grad_study", "deferred", "not_seeking", "seeking", "unknown"]
 
-def employment_record(row: dict, year: int) -> dict:
+
+def employment_record(row: dict, year: int, layout: dict | None = None) -> dict:
     """One school-year as a pipeline import record. The headline measure matches the project's:
     graduates in full-time, long-term, bar-passage-required jobs, over all graduates."""
-    grads = _n(row, "Total_GraduatesTotal")
-    bar = _n(row, "Employed_BarAdmissionRequiredFTLT")
-    jd = _n(row, "Employed_JDAdvantageFTLT")
-    unemployed = _n(row, "UnEmployedSeekingTotal") + _n(row, "UnEmployedNotSeekingTotal")
-    all_buckets = sum(_n(row, k) for k in STATUS_BUCKETS)
+    L = layout or resolve_layout(row.keys())
+    grads = _n(row, L["grads"])
+    bar = _n(row, L["bar_ftlt"])
+    jd = _n(row, L["jd_ftlt"])
+    unemployed = _n(row, L["seeking"]) + _n(row, L["not_seeking"])
+    all_buckets = sum(_n(row, L[c]) for c in STATUS_CONCEPTS)
     other = all_buckets - bar - jd - unemployed  # everything else: part-time/short-term, other job types, grad study, unknown
     name = str(row["SchoolName"]).strip()
     return {
         "source": "aba", "school_name": name, "school_key": slug(name), "grad_year": year,
         "grads": grads, "emp_unit": "count",
         "emp_bar_required": bar, "emp_jd_advantage": jd, "emp_other": other, "emp_unemployed": unemployed,
-        "emp_biglaw": _n(row, "501Plus-Total"),
-        "emp_fed_clerkship": _n(row, "Clerkships_Federal_Total"),
-        "emp_public_interest": _n(row, "PublicInterest_Total"),
-        "emp_government": _n(row, "Government_Total"),
-        "emp_business": _n(row, "BusinessIndustry_Total"),
+        "emp_biglaw": _n(row, L["biglaw"]), "emp_fed_clerkship": _n(row, L["fed_clerkship"]),
+        "emp_public_interest": _n(row, L["public_interest"]), "emp_government": _n(row, L["government"]),
+        "emp_business": _n(row, L["business"]),
         "notes": "",
     }
 
 
+def _problems(records: list[dict]) -> tuple[list[str], list[str]]:
+    zero = [r["school_name"] for r in records if r["grads"] <= 0]
+    off = [r["school_name"] for r in records
+           if r["emp_bar_required"] + r["emp_jd_advantage"] + r["emp_other"] + r["emp_unemployed"] != r["grads"]]
+    return zero, off
+
+
 def load_employment_file(path: Path) -> tuple[int, list[dict]]:
+    """Reads one year. In some years (2016, 2021) the ABA reports law-school-funded jobs as a
+    separate group that must be added to reach total graduates; in others they are already inside
+    the other categories. So the standard layout is tried first, then the funded-jobs variant, and
+    whichever makes every school's categories sum exactly to its graduates is used. If neither
+    does, the file is refused rather than loaded with guessed numbers."""
     sheet, rows = read_xlsx(path)
     year = sheet_year(sheet)
-    return year, [employment_record(r, year) for r in rows]
+    if not rows:
+        raise ValueError(f"{path.name}: no data rows")
+    base = resolve_layout(rows[0].keys())
+    variants = [base]
+    if base["law_school"] is None and "Funded_TotTotalEmployed" in rows[0]:
+        variants.append({**base, "law_school": "Funded_TotTotalEmployed"})
+    last = None
+    for layout in variants:
+        records = [employment_record(r, year, layout) for r in rows]
+        zero, off = _problems(records)
+        if not zero and not off:
+            return year, records
+        last = (zero, off)
+    zero, off = last
+    raise ValueError(f"{path.name}: {len(zero)} schools with no graduates and {len(off)} whose categories "
+                     f"don't sum to graduates (e.g. {(zero + off)[:3]}); refusing to load a layout I misread")
 
 
 # ---------------------------------------------------------------- per-school profile (admissions, cost, bar)

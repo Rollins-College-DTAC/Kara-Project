@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from agent.aba import STATUS_BUCKETS, employment_record, load_employment_file, read_xlsx, sheet_year, slug
+from agent.aba import ALIASES, employment_record, load_employment_file, read_xlsx, resolve_layout, sheet_year, slug
 from agent.clean import clean_record
 from agent.config import ROOT
 
@@ -56,7 +56,8 @@ def test_read_xlsx_returns_header_keyed_rows(tmp_path):
 
 
 def row(**over):
-    base = {k: 0 for k in STATUS_BUCKETS}
+    base = {names[0]: 0 for _, names in ALIASES.values()}  # every column the newest layout has
+    base.pop(ALIASES['law_school'][1][0], None)
     base.update({"SchoolName": "Test Law School", "Total_GraduatesTotal": 100,
                  "Employed_BarAdmissionRequiredTotal": 70, "Employed_BarAdmissionRequiredFTLT": 60,
                  "Employed_JDAdvantageTotal": 10, "Employed_JDAdvantageFTLT": 8,
@@ -170,3 +171,58 @@ def test_per_credit_schools_get_a_labeled_estimate_instead_of_zero_tuition():
     per_credit = [p for p in profiles if p["tuition_basis"] == "per_credit_estimate"]
     assert per_credit and all(p["tuition_resident"] > 0 for p in per_credit)
     assert not any("tuition_not_positive" in p["flags"] for p in profiles)
+
+
+
+# ---------------------------------------------------------------- older layouts and strictness
+
+def old_row(**over):
+    """A 2016-style row: 'Number' suffixes, renamed categories, 501-PLUS."""
+    r = {"SchoolName": "Old Law", "Total_GraduatesNumber": 100, "Employed_BarPassageRequiredFTLT": 60,
+         "Employed_JDAdvantageFTLT": 8, "Employed_BarPassageRequiredNumber": 70, "Employed_JDAdvantageNumber": 10,
+         "Employed_ProfessionPositionNumber": 2, "Employed_NonProfessionPositionNumber": 3,
+         "Employed_UndeterminableNumber": 0, "PursuingGraduateDegreeNumber": 1,
+         "UnEmployedStartDateDeferredNumber": 1, "UnEmployedNotSeekingNumber": 2, "UnEmployedSeekingNumber": 6,
+         "EmploymentStatusUnknownNumber": 5, "501-PLUS": 9, "Clerkships_Federal": 2, "PublicInterest": 4,
+         "Government": 5, "BusinessIndustry": 7}
+    r.update(over)
+    return r
+
+
+def test_an_older_layout_is_resolved_to_the_same_concepts():
+    L = resolve_layout(old_row().keys())
+    assert L["grads"] == "Total_GraduatesNumber" and L["bar_ftlt"] == "Employed_BarPassageRequiredFTLT"
+    assert L["biglaw"] == "501-PLUS" and L["law_school"] is None
+    rec = employment_record(old_row(), 2016)
+    assert rec["grads"] == 100 and rec["emp_bar_required"] == 60 and rec["emp_biglaw"] == 9 and rec["emp_unemployed"] == 8
+
+
+def test_an_unrecognized_layout_raises_instead_of_loading_zeros():
+    with pytest.raises(ValueError, match="unrecognized Employment Summary layout"):
+        resolve_layout(["SchoolName", "SomethingElse"])
+
+
+def test_loader_adds_the_separate_funded_group_only_when_that_makes_the_numbers_add_up(tmp_path):
+    cols = list(old_row()) + ["Funded_TotTotalEmployed"]
+    # 100 graduates, but the listed buckets only reach 99: one law-school-funded job is reported separately.
+    row = [old_row(Employed_BarPassageRequiredNumber=69)[c] if c != "Funded_TotTotalEmployed" else 1 for c in cols]
+    f = make_xlsx(tmp_path / "e.xlsx", "2016_EQSummaryData", cols, [[row[0]] + row[1:]])
+    year, recs = load_employment_file(f)
+    assert year == 2016 and recs[0]["emp_other"] + recs[0]["emp_bar_required"] + recs[0]["emp_jd_advantage"] + recs[0]["emp_unemployed"] == 100
+
+
+def test_loader_refuses_a_file_whose_categories_do_not_sum(tmp_path):
+    cols = list(old_row())
+    row = [old_row(Employed_BarPassageRequiredNumber=40)[c] for c in cols]  # 30 graduates unaccounted for
+    f = make_xlsx(tmp_path / "e.xlsx", "2017_EQSummaryData", cols, [row])
+    with pytest.raises(ValueError, match="refusing to load"):
+        load_employment_file(f)
+
+
+@real_files
+def test_every_downloaded_employment_year_loads_and_sums_exactly():
+    files = sorted(REAL.glob("Employment_Summary_*.xlsx"))
+    assert len(files) >= 2
+    for f in files:
+        year, records = load_employment_file(f)  # raises if any school's categories don't sum
+        assert records and all(r["grads"] > 0 for r in records), f.name
