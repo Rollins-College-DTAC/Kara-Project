@@ -18,13 +18,13 @@ from agent.stats import aggregate_by_school
 from dashboard.analytics import load_generator_log, trigger_precision_recall
 from dashboard.db import (all_decisions, batch_mean_series, latest_stats, read_only_connection,
                           silver_records)
-from dashboard.resolve import resolve_db_path
+from dashboard.resolve import resolve_db_path, source_caption
 from dashboard.theme import inject
 
 st.set_page_config(page_title="Law School Outcomes Agent — Analytics", layout="wide")
 inject()
 st.title("Analytics")
-st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
+source_caption()
 
 PATH = resolve_db_path()
 if not PATH.exists():

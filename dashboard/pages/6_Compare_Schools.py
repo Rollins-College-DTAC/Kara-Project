@@ -1,6 +1,7 @@
 """Compare Schools: a decision view for weighing schools side by side -- outcomes, estimated
-cost, and (sample) application status and deadlines. Outcomes come from published, consistent
-pipeline records; application status, offers and deadlines are invented sample data
+cost, and (sample) application status and deadlines. With real ABA data loaded it shows real
+outcomes, tuition, admissions and bar passage; otherwise it falls back to simulated records.
+Application status, offers and deadlines are always invented samples
 (dashboard/applications.py), clearly labeled as such.
 """
 

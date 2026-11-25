@@ -204,3 +204,17 @@ def aba_employment(conn: sqlite3.Connection) -> list[dict]:
                           "emp_business FROM silver_records WHERE data_source = 'aba' AND status = 'published'")
     except sqlite3.OperationalError:
         return []
+
+
+SIMULATED_NOTE = "Simulated data only. Portfolio demonstration, not a real law-school comparison tool."
+REAL_NOTE = ("Real data from the ABA's Standard 509 and Employment Summary disclosures, loaded through a "
+             "governed pipeline. Not a ranking or admissions advice; always check each school's own report.")
+
+
+def data_source_note(conn: sqlite3.Connection) -> str:
+    """Page banner wording that matches what the database actually holds."""
+    try:
+        real = conn.execute("SELECT 1 FROM silver_records WHERE data_source = 'aba' LIMIT 1").fetchone()
+    except sqlite3.OperationalError:
+        real = None
+    return REAL_NOTE if real else SIMULATED_NOTE

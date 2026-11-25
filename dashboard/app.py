@@ -35,8 +35,8 @@ _conn = read_only_connection(PATH)
 _counts = overview_counts(_conn)
 _conn.close()
 st.markdown(hero(
-    "Live Run", "A governed pipeline that lands, cleans, scores and publishes simulated school outcomes. "
-    "Simulated data only: a portfolio demonstration, not a tool for choosing a real law school.",
+    "Live Run", "A governed pipeline that lands, cleans, scores and publishes law school employment outcomes, "
+    "holding anything that fails a consistency check or an anomaly test for a person to review.",
     [("Imports processed", f"{_counts['files']:,}", "files landed"),
      ("Records published", f"{_counts['published']:,}", "live in the gold view"),
      ("Records held", f"{_counts['held']:,}", "waiting on a person"),

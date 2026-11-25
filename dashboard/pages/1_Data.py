@@ -14,13 +14,13 @@ import streamlit as st
 from dashboard.db import (distinct_grad_years, distinct_school_codes, distinct_statuses,
                           imports_per_minute, read_only_connection, silver_records)
 from dashboard.quality import flag_counts, status_breakdown
-from dashboard.resolve import resolve_db_path
+from dashboard.resolve import resolve_db_path, source_caption
 from dashboard.theme import inject
 
 st.set_page_config(page_title="Law School Outcomes Agent — Data", layout="wide")
 inject()
 st.title("Data")
-st.caption("Simulated data only. Portfolio demonstration, not a real law-school comparison tool.")
+source_caption()
 
 PATH = resolve_db_path()
 if not PATH.exists():

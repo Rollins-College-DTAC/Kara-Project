@@ -46,3 +46,17 @@ def cloud_review_secrets() -> dict | None:
     if not cloud_review_configured(secrets):
         return None
     return {"owner": secrets["GH_REPO_OWNER"], "repo": secrets["GH_REPO_NAME"], "token": secrets["GH_REVIEW_TOKEN"]}
+
+
+def source_caption() -> None:
+    """Shows the data-source banner that matches the database (real ABA data or simulated)."""
+    from dashboard.db import SIMULATED_NOTE, data_source_note, read_only_connection
+    path = resolve_db_path()
+    if not path.exists():
+        st.caption(SIMULATED_NOTE)
+        return
+    conn = read_only_connection(path)
+    try:
+        st.caption(data_source_note(conn))
+    finally:
+        conn.close()
