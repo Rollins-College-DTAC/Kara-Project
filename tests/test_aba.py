@@ -111,3 +111,62 @@ def test_import_script_writes_one_json_per_class_oldest_first(tmp_path):
     written = mod.convert(REAL, tmp_path)
     assert [p.name for p in written] == sorted(p.name for p in written)
     assert json.loads(written[-1].read_text())[0]["source"] == "aba"
+
+
+# ---------------------------------------------------------------- school profiles
+
+from agent.aba import build_school_profiles, estimated_net_tuition, profile_flags, to_frac, to_num  # noqa: E402
+from agent.aba_load import load_profiles  # noqa: E402
+from agent.db import connect  # noqa: E402
+from agent.sql import RunContext, new_run_id  # noqa: E402
+
+
+def test_to_num_and_to_frac_handle_the_formats_the_aba_uses():
+    assert to_num("$22,359") == 22359.0 and to_num(" 157 ") == 157.0 and to_num(94) == 94.0
+    assert to_num("N/A") is None and to_num("") is None and to_num(None) is None
+    assert to_frac("70.16%") == 0.7016 and to_frac(58.53) == 0.5853 and to_frac("") is None
+
+
+def test_estimated_net_tuition_subtracts_the_expected_grant():
+    p = {"tuition_resident": 50000, "fees": 2000, "grants_share": 0.5, "grant_median_ft": 20000}
+    assert estimated_net_tuition(p) == 42000.0  # 52,000 sticker less 0.5 x 20,000
+    assert estimated_net_tuition({"tuition_resident": None}) is None
+    assert estimated_net_tuition({"tuition_resident": 1000, "grants_share": 1.0, "grant_median_ft": 9000}) == 0.0
+
+
+def test_profile_flags_catch_bad_source_data():
+    assert profile_flags({"lsat_25": 150, "lsat_50": 155, "lsat_75": 160}) == []
+    assert "lsat_percentiles_out_of_order" in profile_flags({"lsat_25": 160, "lsat_50": 155, "lsat_75": 150})
+    assert "grants_share_out_of_range" in profile_flags({"grants_share": 1.02})
+    assert "tuition_not_positive" in profile_flags({"tuition_resident": 0})
+
+
+def test_load_profiles_writes_rows_and_logs_the_sql(tmp_path):
+    conn = connect(tmp_path / "d.sqlite")
+    ctx = RunContext(conn=conn, run_id=new_run_id(), file_name="aba_school_profiles")
+    good = {"school_key": "a", "school_name": "A Law", "flags": [], "lsat_50": 160.0}
+    bad = {"school_key": "b", "school_name": "B Law", "flags": ["grants_share_out_of_range"]}
+    assert load_profiles(ctx, [good, bad]) == {"loaded": 2, "flagged": 1}
+    assert conn.execute("select count(*), sum(consistency_ok) from school_profile").fetchone()[:] == (2, 1)
+    assert conn.execute("select count(*) from sql_log where step = 'profile'").fetchone()[0] == 2
+
+
+profile_files = pytest.mark.skipif(not (REAL / "First_Year_Class_2025.xlsx").exists(), reason="509 files not downloaded")
+
+
+@profile_files
+def test_real_profiles_cover_every_school_with_public_private_and_plausible_values():
+    profiles = build_school_profiles(REAL)
+    assert len(profiles) >= 190
+    assert {p["school_type"] for p in profiles if p["school_type"]} == {"Public", "Private"}
+    yale = next(p for p in profiles if p["school_key"] == "yale-university")
+    assert yale["lsat_50"] > 170 and yale["acceptance_rate"] < 0.1 and yale["bar_first_time_pass"] > 0.9
+    assert all(p["lsat_25"] <= p["lsat_50"] <= p["lsat_75"] for p in profiles if None not in (p["lsat_25"], p["lsat_50"], p["lsat_75"]))
+
+
+@profile_files
+def test_per_credit_schools_get_a_labeled_estimate_instead_of_zero_tuition():
+    profiles = build_school_profiles(REAL)
+    per_credit = [p for p in profiles if p["tuition_basis"] == "per_credit_estimate"]
+    assert per_credit and all(p["tuition_resident"] > 0 for p in per_credit)
+    assert not any("tuition_not_positive" in p["flags"] for p in profiles)

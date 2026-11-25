@@ -117,3 +117,132 @@ def load_employment_file(path: Path) -> tuple[int, list[dict]]:
     sheet, rows = read_xlsx(path)
     year = sheet_year(sheet)
     return year, [employment_record(r, year) for r in rows]
+
+
+# ---------------------------------------------------------------- per-school profile (admissions, cost, bar)
+
+CREDITS_PER_YEAR = 30  # a standard full-time JD year (about 88 credits over three years)
+
+
+def to_num(value) -> float | None:
+    """'$22,359' -> 22359.0, '157' -> 157.0, 94 -> 94.0, blanks and 'N/A' -> None."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip().replace("$", "").replace(",", "").replace("%", "")
+    if text in ("", "N/A", "n/a", "-", "NA"):
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def to_frac(value) -> float | None:
+    """A percent given as '70.16%' or as a plain number 58.53 -> 0.7016 / 0.5853."""
+    n = to_num(value)
+    return None if n is None else round(n / 100, 4)
+
+
+def _latest(data_dir: Path, pattern: str) -> tuple[Path, int] | None:
+    best = None
+    for p in data_dir.glob(pattern):
+        m = re.search(r"_(\d{4})\.xlsx$", p.name)
+        if m and (best is None or int(m.group(1)) > best[1]):
+            best = (p, int(m.group(1)))
+    return best
+
+
+def _by_school(rows: list[dict], key: str) -> dict[str, dict]:
+    return {str(r[key]).strip(): r for r in rows if r.get(key) and not str(r[key]).strip().startswith("*")}
+
+
+def profile_flags(p: dict) -> list[str]:
+    """The same kind of sanity rules the pipeline applies to simulated records."""
+    flags = []
+    l = [p.get("lsat_25"), p.get("lsat_50"), p.get("lsat_75")]
+    g = [p.get("gpa_25"), p.get("gpa_50"), p.get("gpa_75")]
+    for vals, name in ((l, "lsat"), (g, "gpa")):
+        if None not in vals and not (vals[0] <= vals[1] <= vals[2]):
+            flags.append(f"{name}_percentiles_out_of_order")
+    for key in ("acceptance_rate", "bar_first_time_pass", "bar_two_year_pass", "grants_share"):
+        v = p.get(key)
+        if v is not None and not (0 <= v <= 1):
+            flags.append(f"{key}_out_of_range")
+    if p.get("tuition_resident") is not None and p["tuition_resident"] <= 0:
+        flags.append("tuition_not_positive")
+    return flags
+
+
+def build_school_profiles(data_dir: Path) -> list[dict]:
+    """One profile per school from the newest file of each kind in data_dir. Each profile records
+    which edition (year) every group of fields came from."""
+    kinds = {
+        "basics": "The_Basics_*.xlsx", "fyc": "First_Year_Class_*.xlsx",
+        "tuition": "Tuitions_and_Fees_*.xlsx", "grants": "Grants_and_Scholarships_*.xlsx",
+        "bar1": "First_Time_Bar_*.xlsx", "bar2": "Two-Year_Ultimate_Bar_*.xlsx",
+    }
+    tables, editions = {}, {}
+    for kind, pattern in kinds.items():
+        found = _latest(data_dir, pattern)
+        if not found:
+            tables[kind], editions[kind] = {}, None
+            continue
+        path, year = found
+        _, rows = read_xlsx(path)
+        tables[kind] = _by_school(rows, "School Name" if kind.startswith("bar") else "SchoolName")
+        editions[kind] = year
+
+    names = sorted(set().union(*[set(t) for t in tables.values()]))
+    profiles = []
+    for name in names:
+        b, f, t, g = (tables[k].get(name, {}) for k in ("basics", "fyc", "tuition", "grants"))
+        b1, b2 = tables["bar1"].get(name, {}), tables["bar2"].get(name, {})
+        tuition = to_num(t.get("FT_Resident_Annual"))
+        tuition_nr = to_num(t.get("FT_NonResident_Annual"))
+        fees = to_num(t.get("FTRS_AnnualFees"))
+        basis = "annual"
+        if not tuition:  # schools that bill per credit report $0 as an annual figure
+            per_credit, per_credit_nr = to_num(t.get("FT_Resident_Credit")), to_num(t.get("FT_NonResident_Credit"))
+            if per_credit:
+                tuition, basis = per_credit * CREDITS_PER_YEAR, "per_credit_estimate"
+                tuition_nr = per_credit_nr * CREDITS_PER_YEAR if per_credit_nr else None
+                fees = to_num(t.get("FTRS_PerCredit_AnnualFees"))
+        living = to_num(t.get("Living_Off_Campus"))
+        two_key = next((k for k in b2 if k.endswith("Graduates") and k[:4].isdigit()), None)
+        p = {
+            "school_key": slug(name), "school_name": name, "school_type": b.get("SchoolType"),
+            "basics_edition": editions["basics"], "admissions_edition": editions["fyc"],
+            "applications": to_num(f.get("Applications")), "offers": to_num(f.get("Offers")),
+            "acceptance_rate": to_frac(f.get("AcceptanceRate")), "enrollees": to_num(f.get("Enrollees")),
+            "lsat_25": to_num(f.get("All25thPercentileLSAT")), "lsat_50": to_num(f.get("All50thPercentileLSAT")),
+            "lsat_75": to_num(f.get("All75thPercentileLSAT")),
+            "gpa_25": to_num(f.get("All25thPercentileUGPA")), "gpa_50": to_num(f.get("All50thPercentileUGPA")),
+            "gpa_75": to_num(f.get("All75thPercentileUGPA")),
+            "cost_edition": editions["tuition"], "tuition_resident": tuition,
+            "tuition_nonresident": tuition_nr, "tuition_basis": basis, "fees": fees, "living_off_campus": living,
+            "grants_edition": editions["grants"],
+            "grants_share": to_frac(g.get("Total Percentage # of Recieving Grants Total %")),
+            "grant_median_ft": to_num(g.get("FT 50th percentile grant amount")),
+            "full_tuition_share": to_frac(g.get("Full tuition total Percentage %")),
+            "bar_edition": editions["bar1"], "bar_first_time_takers": to_num(b1.get("Total First Time Takers")),
+            "bar_first_time_pass": to_frac(b1.get("AvgSchoolPassPercent*")),
+            "bar_state_avg": to_frac(b1.get("AvgStatePassPercent**")),
+            "bar_two_year_edition": editions["bar2"],
+            "bar_two_year_pass": to_frac(b2.get("%Passers")),
+        }
+        p["est_net_tuition"] = estimated_net_tuition(p)
+        p["flags"] = profile_flags(p)
+        profiles.append(p)
+    return profiles
+
+
+def estimated_net_tuition(p: dict) -> float | None:
+    """Sticker tuition + fees, less the expected grant: the share of students who receive a grant
+    times the median full-time grant. An estimate of the average discount, not any one student's."""
+    if p.get("tuition_resident") is None:
+        return None
+    sticker = p["tuition_resident"] + (p.get("fees") or 0)
+    discount = (p.get("grants_share") or 0) * (p.get("grant_median_ft") or 0)
+    return round(max(sticker - discount, 0), 2)

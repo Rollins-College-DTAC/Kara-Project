@@ -97,6 +97,17 @@ SCHEMA = [
         landed_at TEXT,
         PRIMARY KEY (file_name, row_index)
     )""",
+    """CREATE TABLE IF NOT EXISTS school_profile (
+        school_key TEXT PRIMARY KEY, school_name TEXT, school_type TEXT,   -- real ABA data only
+        basics_edition INTEGER, admissions_edition INTEGER, cost_edition INTEGER, grants_edition INTEGER,
+        bar_edition INTEGER, bar_two_year_edition INTEGER,
+        applications REAL, offers REAL, acceptance_rate REAL, enrollees REAL,
+        lsat_25 REAL, lsat_50 REAL, lsat_75 REAL, gpa_25 REAL, gpa_50 REAL, gpa_75 REAL,
+        tuition_resident REAL, tuition_nonresident REAL, tuition_basis TEXT, fees REAL, living_off_campus REAL,
+        grants_share REAL, grant_median_ft REAL, full_tuition_share REAL, est_net_tuition REAL,
+        bar_first_time_takers REAL, bar_first_time_pass REAL, bar_state_avg REAL, bar_two_year_pass REAL,
+        consistency_ok INTEGER, consistency_flags TEXT, loaded_at TEXT
+    )""",
     """CREATE TABLE IF NOT EXISTS stats_log (
         run_id TEXT, step TEXT, method TEXT,
         formula_latex TEXT, inputs_json TEXT,
